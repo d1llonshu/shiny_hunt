@@ -22,7 +22,7 @@ class DeviceInfo(TypedDict):
 
 
 def getAudioDevices(target) -> List[DeviceInfo]:
-    devices: List[DeviceInfo] = sd.query_devices()
+    devices: List[DeviceInfo] = sd.query_devices() # type: ignore
 
     contains_target : List[DeviceInfo] = []
 
@@ -70,7 +70,7 @@ def setup(index=None) -> DeviceInfo:
     if index:
         print("Manually Provided Device: ")
         print(sd.query_devices(index))
-        return sd.query_devices(index)
+        return sd.query_devices(index) # type: ignore
     # 1) Clear out old samples
     clear_folder(AUDIO_SAMPLES_PATH)
 
