@@ -6,20 +6,7 @@ import os
 from typing import TypedDict, List
 
 from configuration.configHelper import print_linebreak, clear_folder, AUDIO_SAMPLES_PATH
-
-
-class DeviceInfo(TypedDict):
-    name: str
-    index: int
-    hostapi: int
-    max_input_channels: int
-    max_output_channels: int
-    default_low_input_latency: float
-    default_low_output_latency: float
-    default_high_input_latency: float
-    default_high_output_latency: float
-    default_samplerate: float
-
+from configuration.configHelper import AudioDeviceInfo as DeviceInfo
 
 def getAudioDevices(target) -> List[DeviceInfo]:
     devices: List[DeviceInfo] = sd.query_devices() # type: ignore

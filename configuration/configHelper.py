@@ -1,10 +1,23 @@
 import os
 import shutil
+from typing import TypedDict, List
 
 HERE = os.path.dirname(__file__)                    
 ROOT = os.path.abspath(os.path.join(HERE, os.pardir))  # …/Root
 AUDIO_SAMPLES_PATH = os.path.join(ROOT, 'samples', 'audio_setup_files')
 VIDEO_SAMPLES_PATH = os.path.join(ROOT, 'samples', 'video_setup_files')
+
+class AudioDeviceInfo(TypedDict):
+    name: str
+    index: int
+    hostapi: int
+    max_input_channels: int
+    max_output_channels: int
+    default_low_input_latency: float
+    default_low_output_latency: float
+    default_high_input_latency: float
+    default_high_output_latency: float
+    default_samplerate: float
 
 def clear_folder(path: str) -> None:
     """

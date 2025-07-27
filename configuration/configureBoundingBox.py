@@ -4,13 +4,18 @@ import numpy as np
 def nothing(x):
     pass
 
+RESOLUTION_HEIGHT = 1920
+RESOLUTION_WIDTH = 1080
+
 def setup(deviceIndex: int, bounding_box=None):
     if bounding_box:
         print(f"Manually Provided Bounding Box: {bounding_box}")
         return bounding_box
 
     print("Press S or Close the Window to Save")
-    cap = cv2.VideoCapture(deviceIndex)
+    cap = cv2.VideoCapture(deviceIndex, cv2.CAP_MSMF) #set to msmf to better handle capture cards
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_HEIGHT)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_WIDTH)
     if not cap.isOpened():
         raise RuntimeError("Could not open video stream")
 

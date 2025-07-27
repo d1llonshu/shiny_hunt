@@ -3,9 +3,9 @@ from configuration import configureVideoDevice
 from configuration import configureBoundingBox
 from configuration import configHelper
 
-AUDIO_DEVICE = None #Should be set to None if you don't know the index or have restarted/unplugged
-VIDEO_DEVICE = None #Should be set to None if you don't know the index or have restarted/unplugged
-BOUNDING_BOX = () #Should be set to () if you don't know the bounding box region
+AUDIO_DEVICE = 2 #Should be set to None if you don't know the index or have restarted/unplugged
+VIDEO_DEVICE = 0 #Should be set to None if you don't know the index or have restarted/unplugged
+BOUNDING_BOX = () #Should be set to () if you don't know the bounding box region, default res 1920x1080
 
 def setup():
     print("Setting up Audio Device...")
@@ -18,4 +18,5 @@ def setup():
     bounding_box = configureBoundingBox.setup(video_device, BOUNDING_BOX)
     configHelper.print_linebreak()
 
-setup()
+if __name__ == "__main__":
+    setup()
