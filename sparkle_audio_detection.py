@@ -6,7 +6,7 @@ from scipy.signal import correlate
 
 
 # === Configuration ===
-REF_PATH = 'reference_material/sparkle.mp3'  # Path to your 2-second sparkle sound
+REF_PATH = 'samples/reference_material/sparkle.mp3'  # Path to your 2-second sparkle sound
 DEVICE_INDEX = 11          # 11, 20, or 43
 SAMPLE_RATE = 44100       # 44.1 kHz is standard
 CHANNELS = 1              # Mono for simplicity
@@ -61,7 +61,7 @@ def callback(indata, frames, time, status):
     # === Detection ===
     if max_corr > THRESHOLD_CORR:
         print("SHINY DETECTED!")
-        sf.write(f'sound_matches/{max_corr:.2f}.wav', buffer_norm, 44100)
+        sf.write(f'samples/sound_matches/{max_corr:.2f}.wav', buffer_norm, 44100)
 
 # === Start audio stream ===
 try:
