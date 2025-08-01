@@ -4,18 +4,33 @@ import numpy as np
 def nothing(x):
     pass
 
-RESOLUTION_HEIGHT = 1920
-RESOLUTION_WIDTH = 1080
+RESOLUTION_HEIGHT = 1080
+RESOLUTION_WIDTH = 1920
+
+def validateBoundingBox(boundingBox):
+    #X, Y, L, W
+    try:
+        if boundingBox[0]+boundingBox[2] > RESOLUTION_WIDTH or boundingBox[1]+boundingBox[3] > RESOLUTION_HEIGHT:
+            print("Failed bounding box validation (Won't fit in resolution).")
+            return False
+        elif boundingBox[0] < 0 or boundingBox[1] < 0 or boundingBox[2] < 0 or boundingBox[3] < 0:
+            print("Failed bounding box validation (negative value)")
+            return False
+        else:
+            return True
+    except:
+        print("Bad bounding box args.")
+        return False
 
 def setup(deviceIndex: int, bounding_box=None):
     if bounding_box:
         print(f"Manually Provided Bounding Box: {bounding_box}")
         return bounding_box
-
+    print("Setting up Bounding Box...")
     print("Press S or Close the Window to Save")
     cap = cv2.VideoCapture(deviceIndex, cv2.CAP_MSMF) #set to msmf to better handle capture cards
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_HEIGHT)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_HEIGHT)
     if not cap.isOpened():
         raise RuntimeError("Could not open video stream")
 

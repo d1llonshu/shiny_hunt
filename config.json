@@ -1,0 +1,14 @@
+{
+  "shaymin_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "shiny_bounding_box": [
+      1050,
+      360,
+      700,
+      630
+    ]
+  }
+}

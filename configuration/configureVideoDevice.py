@@ -66,6 +66,7 @@ def setup(index=None) -> int:
     if index != None:
         print(f"Manually Provided Video Device Index: [{index}] ")
         return index
+    print("Setting up Video Device...")
     clear_folder(VIDEO_SAMPLES_PATH)
     print(f"Max video input index {MAX_INDEX}")
     devices = list_video_devices()

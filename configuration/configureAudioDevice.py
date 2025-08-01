@@ -58,6 +58,8 @@ def setup(index=None) -> DeviceInfo:
         print("Manually Provided Device: ")
         print(sd.query_devices(index))
         return sd.query_devices(index) # type: ignore
+    
+    print("Setting up Audio Device...")
     # 1) Clear out old samples
     clear_folder(AUDIO_SAMPLES_PATH)
 
