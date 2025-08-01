@@ -6,6 +6,7 @@ constexpr long COM_BAUD = 115200;
 constexpr uint8_t NUM_INPUTS = 14;
 constexpr uint16_t PRESS_TIME = 100;
 
+
 // static const char* valid_inputs[NUM_INPUTS] = {
 //   "A",
 //   "B",
@@ -70,24 +71,104 @@ void setup() {
   delay(2000);
 }
 
-void shayminScript(){
-  
-}
+// void comboPress(uint8_t button, NSDirection_t direction, uint16_t hold_ms){
+//   Gamepad.press(button);
+//   Gamepad.dPad(direction);
+//   Gamepad.write();
+
+//   delay(hold_ms);
+
+//   Gamepad.release(button);
+//   Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+//   Gamepad.write();
+// }
+
+// void shayminScript(char step){
+//   if (step == '1'){
+//     dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+//     buttonPress(NSButton_A, PRESS_TIME);
+//     buttonPress(NSButton_A, PRESS_TIME);
+//     comboPress(NSButton_B, NSGAMEPAD_DPAD_DOWN, 4500);
+//     comboPress(NSButton_B, NSGAMEPAD_DPAD_UP, 4500);
+//     buttonPress(NSButton_A, PRESS_TIME);
+//     delay(1000);
+//     buttonPress(NSButton_A, PRESS_TIME);
+//   }
+//   else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
+//   else if (step == 'B') { buttonPress(NSButton_B, PRESS_TIME); }
+//   else if (step == 'X') { buttonPress(NSButton_X, PRESS_TIME); }
+//   else if (step == 'Y') { buttonPress(NSButton_Y, PRESS_TIME); }
+
+//   else if (step == 'U') { dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME); }
+//   else if (step == 'D') { dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME); }
+//   else if (step == 'L') { dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME); }
+//   else if (step == 'R') { dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME); }
+// }
+
+//Upload thru COM8, unplug, plug USB port into Switch, plug COM8 in again.
+//Unplug from switch to upload
 
 void loop() {
   if (Serial0.available() > 0) {                // if data is waiting in buffer
-        char cmd = Serial0.read();               // read one byte/char
+        // char cmd = Serial0.read();               // read one byte/char
         // decide action based on cmd:
+        // Serial0.println("input recieved:");
+        // Serial0.println(cmd);
+        // shayminScript(cmd);
+        char step = Serial0.read();
         Serial0.println("input recieved:");
-        Serial0.println(cmd);
-        if (cmd == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
-        else if (cmd == 'B') { buttonPress(NSButton_B, PRESS_TIME); }
-        else if (cmd == 'X') { buttonPress(NSButton_X, PRESS_TIME); }
-        else if (cmd == 'Y') { buttonPress(NSButton_Y, PRESS_TIME); }
+        Serial0.println(step);
 
-        else if (cmd == 'U') { dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME); }
-        else if (cmd == 'D') { dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME); }
-        else if (cmd == 'L') { dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME); }
-        else if (cmd == 'R') { dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME); }
+        if (step == '1'){
+          dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+          buttonPress(NSButton_A, PRESS_TIME);
+
+          delay(3500);
+
+          buttonPress(NSButton_A, PRESS_TIME);
+
+          Gamepad.press(NSButton_B);
+          Gamepad.dPad(NSGAMEPAD_DPAD_DOWN);
+          Gamepad.write();
+
+          delay(5000);
+
+          Gamepad.release(NSButton_B);
+          Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+          Gamepad.write();
+
+          Gamepad.press(NSButton_B);
+          Gamepad.dPad(NSGAMEPAD_DPAD_UP);
+          Gamepad.write();
+
+          delay(5000);
+
+          Gamepad.release(NSButton_B);
+          Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+          Gamepad.write();
+
+
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(3500);
+          buttonPress(NSButton_A, PRESS_TIME);
+        }
+        else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
+        else if (step == 'B') { buttonPress(NSButton_B, PRESS_TIME); }
+        else if (step == 'X') { buttonPress(NSButton_X, PRESS_TIME); }
+        else if (step == 'Y') { buttonPress(NSButton_Y, PRESS_TIME); }
+
+        else if (step == 'U') { dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME); }
+        else if (step == 'D') { dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME); }
+        else if (step == 'L') { dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME); }
+        else if (step == 'R') { dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME); }
+        // if (cmd == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
+        // else if (cmd == 'B') { buttonPress(NSButton_B, PRESS_TIME); }
+        // else if (cmd == 'X') { buttonPress(NSButton_X, PRESS_TIME); }
+        // else if (cmd == 'Y') { buttonPress(NSButton_Y, PRESS_TIME); }
+
+        // else if (cmd == 'U') { dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME); }
+        // else if (cmd == 'D') { dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME); }
+        // else if (cmd == 'L') { dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME); }
+        // else if (cmd == 'R') { dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME); }
   }
 }

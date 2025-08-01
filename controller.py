@@ -40,6 +40,10 @@ def read_line(ser: Serial) -> Optional[str]:
         print(f"Serial read failed: {e}")
         return None
 
+def test_commands(ser: Serial):
+    while True:
+        cmd = input("Enter a step: ")
+        ser.write(cmd.strip().encode('utf-8'))
 
 
 # while True:
@@ -58,3 +62,7 @@ def read_line(ser: Serial) -> Optional[str]:
 # except KeyboardInterrupt:
 #     ser.close()
 #     print('\nSerial port closed.')
+
+if __name__ == "__main__":
+    ser = init_serial("COM8")
+    test_commands(ser)
