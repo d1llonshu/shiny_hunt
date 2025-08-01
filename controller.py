@@ -1,21 +1,46 @@
 import serial
-import sys
-import serial.tools.list_ports
+from serial import Serial
+from typing import Optional
 
-PORT = "COM8"   
-BAUD = 115200 #sync to comp?
+BAUD = 115200
 
-ports = list(serial.tools.list_ports.comports())
-for p in ports:
-    print(f"{p.device}: {p.description}")
+def init_serial(port: str, baud: int = BAUD) -> Serial:
+    ser = serial.Serial(port, baud, timeout=1)
+    print(f"Connected to {port} @ {baud} baud")
+    return ser
 
-try:
-    ser = serial.Serial(PORT, BAUD, timeout=1)
-except serial.SerialException as e:
-    print("Could not open serial port:", e)
-    sys.exit(1)
+def close_serial(ser: Serial):
+    if ser is None:
+        return
+    try:
+        print("Closing serial...")
+        ser.close()
+    except serial.SerialException as e:
+        print(f"Could not close serial port: {e}")
 
-print(f"Connected to {PORT} @ {BAUD} baud")
+def controller_sequence(ser: Serial, msg: str) -> bool:
+    if ser is None:
+        print("Serial object is None; cannot write.")
+        return False
+    try:
+        data = msg.strip().encode("utf-8")
+        ser.write(data)
+        return True
+    except serial.SerialException as e:
+        print(f"Serial write failed: {e}")
+        return False
+
+def read_line(ser: Serial) -> Optional[str]:
+    if ser is None:
+        return None
+    try:
+        line = ser.readline()
+        return line.decode("utf-8", errors="replace").rstrip("\r\n")
+    except serial.SerialException as e:
+        print(f"Serial read failed: {e}")
+        return None
+
+
 
 # while True:
 #     cmd = input("Enter a command (A/B/X/Y U/D/L/R): ")

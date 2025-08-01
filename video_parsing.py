@@ -29,7 +29,7 @@ frame_idx = 0
 
 # Blob detector for big bright sparkles
 def make_blob_detector():
-    params = cv2.SimpleBlobDetector_Params()
+    params = cv2.SimpleBlobDetector_Params() # type: ignore
     params.filterByArea = True
     params.minArea = BLOB_MIN_AREA
     params.maxArea = BLOB_MAX_AREA
@@ -42,9 +42,9 @@ def make_blob_detector():
     params.maxThreshold = 255
     params.thresholdStep = 5
     try:
-        return cv2.SimpleBlobDetector_create(params)
+        return cv2.SimpleBlobDetector_create(params) # type: ignore
     except AttributeError:
-        return cv2.SimpleBlobDetector(params)
+        return cv2.SimpleBlobDetector(params) # type: ignore
 
 detector = make_blob_detector()
 
@@ -133,8 +133,8 @@ def run_live():
     global frame_idx, brightness_baseline, sparkle_history, cooldown_frames
     enable_box = False
     cap = cv2.VideoCapture(CAMERA_INDEX)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_HEIGHT)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_HEIGHT)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open camera {CAMERA_INDEX}")
 

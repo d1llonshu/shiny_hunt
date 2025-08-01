@@ -6,16 +6,11 @@ from configuration import configHelper
 
 import json
 
-HUNT_NAME = "shaymin_bdsp"
-
 CONFIG_PATH = "config.json"
 
-def setup():
-    
-    # Load existing (or start fresh if missing)
-
+def setup(hunt_name):
     needs_updating = False
-
+    # Load existing (or start fresh if missing)
     try:
         with open(CONFIG_PATH, "r") as f:
             config = json.load(f)
@@ -28,13 +23,13 @@ def setup():
 
     try:
         with open(CONFIG_PATH, "r") as f:
-            data = config[HUNT_NAME]
-            print(f"Config found for {HUNT_NAME}, checking validity of config")
+            data = config[hunt_name]
+            print(f"Config found for {hunt_name}, checking validity of config")
 
     except:
-            print(f"No config found for {HUNT_NAME}, generating new config.")
+            print(f"No config found for {hunt_name}, generating new config.")
             data = {}
-            
+
     configHelper.print_linebreak()
     keys = data.keys()
 
@@ -75,18 +70,16 @@ def setup():
     print("Controller Serial Ports Selected Sucessfully!")
     configHelper.print_linebreak()
 
-    # Rewrite config
+    # Rewrite config if needed
     if needs_updating or controller_ports["updated"]:
         print("Updating Config...")
         with open(CONFIG_PATH, "w") as f:
-            config[HUNT_NAME] = data
+            config[hunt_name] = data
             json.dump(config, f, indent=2)
         f.close()
         configHelper.print_linebreak()
 
-    print(f"Config for {HUNT_NAME} is ready!")
+    print(f"Config for {hunt_name} is ready!")
     configHelper.print_linebreak()
 
-
-if __name__ == "__main__":
-    setup()
+    return data

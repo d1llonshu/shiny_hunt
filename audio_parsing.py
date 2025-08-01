@@ -7,7 +7,6 @@ from scipy.signal import correlate
 
 # === Configuration ===
 REF_PATH = 'samples/reference_material/sparkle.mp3'  # Path to your 2-second sparkle sound
-DEVICE_INDEX = 11          # 11, 20, or 43
 SAMPLE_RATE = 44100       # 44.1 kHz is standard
 CHANNELS = 1              # Mono for simplicity
 ROLLING_SECONDS = 2       # Length of rolling buffer (match reference duration)
@@ -19,8 +18,6 @@ BLOCK_SIZE = int(SAMPLE_RATE * BLOCK_DURATION)
 # shaymin's call has peaked at 40.58 so we may want to raise
 # strong matches are 400+
 THRESHOLD_CORR = 200
-
-
 
 # # === Load and process reference sparkle sound ===
 # === Normalize helper ===
@@ -63,13 +60,14 @@ def callback(indata, frames, time, status):
         print("SHINY DETECTED!")
         sf.write(f'samples/sound_matches/{max_corr:.2f}.wav', buffer_norm, 44100)
 
-# === Start audio stream ===
-try:
-    with sd.InputStream(device=DEVICE_INDEX, callback=callback,
-                        channels=CHANNELS, samplerate=SAMPLE_RATE,
-                        blocksize=BLOCK_SIZE):
-        print("Listening for shiny sparkle...")
-        while True:
-            sd.sleep(1000)
-except Exception as e:
-    print(f"[!] Error: {e}")
+def listen(device_index):
+    # === Start audio stream ===
+    try:
+        with sd.InputStream(device=device_index, callback=callback,
+                            channels=CHANNELS, samplerate=SAMPLE_RATE,
+                            blocksize=BLOCK_SIZE):
+            print("Listening for shiny sparkle...")
+            while True:
+                sd.sleep(1000)
+    except Exception as e:
+        print(f"[!] Error: {e}")
