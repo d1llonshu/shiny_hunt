@@ -3,7 +3,9 @@ import soundfile as sf
 import librosa
 import numpy as np
 from scipy.signal import correlate
-
+import json
+import os
+from setup import CONFIG_PATH
 
 # === Configuration ===
 REF_PATH = 'samples/reference_material/sparkle.mp3'  # Path to your 2-second sparkle sound
@@ -18,6 +20,8 @@ BLOCK_SIZE = int(SAMPLE_RATE * BLOCK_DURATION)
 # shaymin's call has peaked at 40.58 so we may want to raise
 # strong matches are 400+
 THRESHOLD_CORR = 200
+
+save_path = ""
 
 # # === Load and process reference sparkle sound ===
 # === Normalize helper ===
@@ -58,16 +62,41 @@ def callback(indata, frames, time, status):
     # === Detection ===
     if max_corr > THRESHOLD_CORR:
         print("SHINY DETECTED!")
-        sf.write(f'samples/sound_matches/{max_corr:.2f}.wav', buffer_norm, 44100)
+        sf.write(f"{save_path}/shiny.wav", buffer_norm, 44100)
 
 def listen(device_index):
     # === Start audio stream ===
+    # TO DO - IMPLEMENT PER HUNT PATH FOR SHINY_DETECTED
+    # config_path = "config.json"
+    # try:
+    #     with open(config_path, "r") as f:
+    #         config = json.load(f)
+    # except Exception as e:
+    #     print("Error with config or config path")
+    print(save_path)
     try:
         with sd.InputStream(device=device_index, callback=callback,
                             channels=CHANNELS, samplerate=SAMPLE_RATE,
                             blocksize=BLOCK_SIZE):
-            print("Listening for shiny sparkle...")
+            print(f"Listening for shiny sparkle... on Index [{device_index}]")
             while True:
                 sd.sleep(1000)
     except Exception as e:
         print(f"[!] Error: {e}")
+
+if __name__ == "__main__":
+    # hunt = input("hunt_name (case sensitive): ")
+    hunt = "shaymin_bdsp"
+    try:
+        with open(CONFIG_PATH, "r") as f:
+            config = json.load(f)
+            data = config[hunt]
+            shiny_folder = data["path"] + "/shiny_detected/"
+            os.makedirs(shiny_folder, exist_ok=True)
+            save_path = shiny_folder
+            f.close()
+        listen(data["audio_device_index"])
+    except Exception as e:
+        print(f"Error with config or config path: {e}")
+
+    

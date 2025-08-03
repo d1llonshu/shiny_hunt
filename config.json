@@ -4,11 +4,13 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
+    "resets": 130,
+    "path": "hunt/shaymin_bdsp",
     "shiny_bounding_box": [
-      1050,
-      360,
-      700,
-      630
+      1120,
+      450,
+      590,
+      440
     ]
   }
 }

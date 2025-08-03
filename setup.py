@@ -5,6 +5,7 @@ from configuration import configureController
 from configuration import configHelper
 
 import json
+import os
 
 CONFIG_PATH = "config.json"
 
@@ -70,6 +71,13 @@ def setup(hunt_name):
     print("Controller Serial Ports Selected Sucessfully!")
     configHelper.print_linebreak()
 
+    if "resets" not in keys:
+        data["resets"] = 0
+
+    if "path" not in keys or os.path.isfile(data["path"]):
+        os.makedirs(f"hunt/{hunt_name}", exist_ok=True)
+        data["path"] = f"hunt/{hunt_name}"
+
     # Rewrite config if needed
     if needs_updating or controller_ports["updated"]:
         print("Updating Config...")
@@ -83,3 +91,7 @@ def setup(hunt_name):
     configHelper.print_linebreak()
 
     return data
+
+if __name__ == "__main__":
+    hunt = input("hunt_name (case sensitive): ")
+    setup(hunt)

@@ -125,14 +125,14 @@ def process_video(path):
     cv2.destroyAllWindows()
 
 def main():
-    # IMAGE_PATH = "hunt/shaymin_bdsp/reference_images/shaymin_shine.png"
+    IMAGE_PATH = "hunt/shaymin_bdsp/reference_images/shaymin_shine_night.png"
 
-    # ext = os.path.splitext(IMAGE_PATH)[1].lower()
-    # if ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"]:
-    #     process_image(IMAGE_PATH)
-    # else:
-    #     process_video(IMAGE_PATH)
-    print("Need to update PATH before using...")
+    ext = os.path.splitext(IMAGE_PATH)[1].lower()
+    if ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"]:
+        process_image(IMAGE_PATH)
+    else:
+        process_video(IMAGE_PATH)
+    # print("Need to update PATH before using...")
 
 if __name__ == "__main__":
     main()

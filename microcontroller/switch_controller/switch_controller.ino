@@ -113,17 +113,16 @@ void loop() {
         // char cmd = Serial0.read();               // read one byte/char
         // decide action based on cmd:
         // Serial0.println("input recieved:");
-        // Serial0.println(cmd);
+        
         // shayminScript(cmd);
         char step = Serial0.read();
-        Serial0.println("input recieved:");
         Serial0.println(step);
-
         if (step == '1'){
+          Serial0.write("Beginning Scripted Input");
           dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
           buttonPress(NSButton_A, PRESS_TIME);
 
-          delay(3500);
+          delay(5000);
 
           buttonPress(NSButton_A, PRESS_TIME);
 
@@ -131,7 +130,7 @@ void loop() {
           Gamepad.dPad(NSGAMEPAD_DPAD_DOWN);
           Gamepad.write();
 
-          delay(5000);
+          delay(3250);
 
           Gamepad.release(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
@@ -141,16 +140,25 @@ void loop() {
           Gamepad.dPad(NSGAMEPAD_DPAD_UP);
           Gamepad.write();
 
-          delay(5000);
+          delay(3250);
 
           Gamepad.release(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
           Gamepad.write();
 
-
           buttonPress(NSButton_A, PRESS_TIME);
           delay(3500);
           buttonPress(NSButton_A, PRESS_TIME);
+
+          Serial0.write("Starting Battle");
+          delay(6000);
+          Serial0.write("Start Shiny Check");
+          delay(3000);
+          Serial0.write("Screenshot");
+          delay(7000);
+          Serial0.write("End Shiny Check");
+          delay(5000);
+          Serial0.write("End Scripted Input");
         }
         else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
         else if (step == 'B') { buttonPress(NSButton_B, PRESS_TIME); }

@@ -89,3 +89,4 @@ def setup(index=None) -> int:
                 print(f"Selected device index {int(choice)}.")
                 return int(choice)
             print(f"Invalid choice '{choice}'. Please choose from {devices}.")
+
