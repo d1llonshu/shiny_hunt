@@ -36,6 +36,9 @@ shiny_detected = False
 screenshot_folder = ""
 shiny_folder = ""
 
+#For testing how many frames a shiny is eligible to be detected
+frame_count = 0
+
 # Blob detector for big bright sparkles
 def make_blob_detector():
     params = cv2.SimpleBlobDetector_Params() # type: ignore
@@ -60,6 +63,8 @@ detector = make_blob_detector()
 def process_frame(frame, roi_rect):
     global brightness_baseline, cooldown_frames, sparkle_history, resets, shiny_detected, should_screenshot
 
+    global frame_count
+    
     x, y, w, h = roi_rect
     h_frame, w_frame = frame.shape[:2]
     # clamp ROI to frame bounds
@@ -74,7 +79,7 @@ def process_frame(frame, roi_rect):
     gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
     gray_blur = cv2.GaussianBlur(gray, (3,3), 0)
 
-    # === Flash detection ===
+    # Flash detection
     current_brightness = np.percentile(gray_blur, BRIGHTNESS_PERCENTILE)
     if brightness_baseline is None:
         brightness_baseline = current_brightness
@@ -83,14 +88,14 @@ def process_frame(frame, roi_rect):
         brightness_baseline = FLASH_DECAY * brightness_baseline + (1 - FLASH_DECAY) * current_brightness
         flash_detected = (current_brightness - brightness_baseline) > BRIGHTNESS_THRESHOLD
 
-    # === Brightest-pixel mask ===
+    # Brightest Pixel Mask
     thresh_val = np.percentile(gray_blur, BRIGHTNESS_PERCENTILE)
     _, bright_mask = cv2.threshold(gray_blur, thresh_val, 255, cv2.THRESH_BINARY)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
     bright_mask = cv2.morphologyEx(bright_mask, cv2.MORPH_OPEN, kernel)
     masked_gray = cv2.bitwise_and(gray_blur, gray_blur, mask=bright_mask)
 
-    # === Sparkle/blob detection on masked brightest pixels ===
+    # Sparkle/blob detection on masked brightest pixels
     try:
         keypoints = detector.detect(masked_gray)
     except Exception:
@@ -113,6 +118,9 @@ def process_frame(frame, roi_rect):
     if trigger:
         cooldown_frames = COOLDOWN_PERIOD
         shiny_detected = True
+        fname = os.path.join(shiny_folder, f"shiny{frame_count}.png")
+        frame_count += 1
+        cv2.imwrite(fname, frame)
         # save masked overlay for debugging
         masked_vis = cv2.cvtColor(masked_gray, cv2.COLOR_GRAY2BGR)
         for kp in keypoints:
@@ -121,11 +129,10 @@ def process_frame(frame, roi_rect):
             cv2.circle(masked_vis, pt, radius, (0,255,255), 2)
         cv2.putText(masked_vis, f"Resets: {resets}", (5,20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
-        fname = os.path.join(screenshot_folder, "shiny.png")
+        fname = os.path.join(shiny_folder, "shiny_masked.png")
         cv2.imwrite(fname, masked_vis)
 
-
-    # === Visualization: only ROI content with circles and bounding box ===
+    # Visualization only ROI content with circles and bounding box
     #      1120,450,590,440
     display = frame.copy()
     # draw bounding box
@@ -147,77 +154,99 @@ def process_frame(frame, roi_rect):
     return trigger, display
 
 def run_live(settings, hunt_name, all_settings):
-    enable_box = False
+    #Start serial communication
     ser = init_serial(settings["controller_com_port"])
     start_serial_reader(ser)
 
     global brightness_baseline, sparkle_history, cooldown_frames, should_screenshot, shiny_detected, resets
     
+    global frame_count
+
+    #openCV display related values
+    text_font = cv2.FONT_HERSHEY_SIMPLEX
+    text_font_scale = 0.7
+    text_thickness = 2
+    row_one = (10, 30)
+    row_two = (10, 60)
+    green = (0, 0, 255)
+    window_name = f"{hunt_name} Shiny Hunt"
+
+    #Start Video Capture
+    print(f"Starting Video Capture at Index [{settings['video_device_index']}]")
+    # cap = cv2.VideoCapture("hunt/shaymin_bdsp/reference_images/sample_vid.mp4")
     cap = cv2.VideoCapture(settings["video_device_index"])
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_HEIGHT)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open camera {CAMERA_INDEX}")
-
-    cv2.namedWindow("Live Shiny Detection", cv2.WINDOW_NORMAL)
-
-    #technically there is room for crashing here, but its just assumed itll be fine given we have setup
-    # key = ""
-    # while True:
-    #     ret, frame = cap.read()
-    #     cv2.imshow("Live Shiny Detection", frame)
-    #     key = cv2.waitKey(1)
-    #     if key == 'r':
-    #         break
-        
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
     last_seen = ""
+    enable_box = False
+    entering_holding_pattern = False
+
     while True:
+        # TO SEE HOW MANY FRAMES IT WILL DETECT, MUST REMOVE BEFORE USE!!!
+        # shiny_detected = False
+        # frame_count += 1
+
         should_screenshot = False #only want this to be true for 1 frame per reset
         ret, frame = cap.read()
         
         if not ret:
             continue  # drop and try next frame
         
-        # keep track of state of read line (it will tell this program when to run shiny check)
-        # microcontroller will track time and announce state via serial (i.e 'start shiny check' or 'end shiny check')
-        # this program will respond based on shiny check outcome (i.e '1' if we do another encounter or just nothing if we found shiny or smth)
-        #if it changes from
-        # crashes if commands change too fast. seems to be fine otherwise.
-        #
-        # Mask only the bounding box
-        ser_log = get_latest_command()
-        if ser_log is not None and ser_log != last_seen:
-            if ser_log == "Start Shiny Check":
-                enable_box = True
-            elif ser_log == "End Shiny Check":
-                enable_box = False
-            elif ser_log == "Screenshot":
-                should_screenshot = True
-            elif ser_log == "End Scripted Input":
-                audio_path = shiny_folder + "shiny.wav"
-                shiny_detected_audio = False
-                if os.path.isfile(audio_path):
-                    shiny_detected_audio = True
-                if shiny_detected == False and shiny_detected_audio == False:
-                    resets += 1
-                    async_controller_sequence(ser, '1')
-            last_seen = ser_log
-        text = f"Resets: {resets}"
-        org = (10, 30)  # position (x, y) of baseline of text
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 0.7
-        thickness = 2
-        org2 = (10, 60)
-        if enable_box:
-            trigger, processed_frame = process_frame(frame, settings["shiny_bounding_box"])
-            cv2.putText(processed_frame, text, org, font, font_scale, (0, 0, 255), thickness, cv2.LINE_AA)
-            cv2.putText(processed_frame, last_seen, org2, font, font_scale, (0, 0, 255), thickness, cv2.LINE_AA)
-            cv2.imshow("Live Shiny Detection", processed_frame)
+        # If shiny has been detected audio or visual, we don't want any potential for input
+        if not entering_holding_pattern:
+            #Tracks most recent serial output from microcontroller, which dictates behavior.
+            ser_log = get_latest_command()
+            if ser_log is not None and ser_log != last_seen:
+                if ser_log == "Start Shiny Check":
+                    enable_box = True
+                elif ser_log == "End Shiny Check":
+                    enable_box = False
+                elif ser_log == "Screenshot":
+                    should_screenshot = True
+                elif ser_log == "End Scripted Input":
+                    audio_path = shiny_folder + "shiny.wav"
+                    shiny_detected_audio = False
+                    if os.path.isfile(audio_path):
+                        shiny_detected_audio = True
+                        entering_holding_pattern = True
+                    if shiny_detected == False and shiny_detected_audio == False:
+                        resets += 1
+                        async_controller_sequence(ser, '1')
+                last_seen = ser_log
+            # TESTING
+            if os.path.isfile(shiny_folder + "shiny.wav"):
+                entering_holding_pattern = True
+            
+
+            #Display is different depending on if the shiny detection is enabled
+            if enable_box:
+                trigger, processed_frame = process_frame(frame, settings["shiny_bounding_box"])
+                display_frame = processed_frame
+                if trigger:
+                    entering_holding_pattern = True
+            else:
+                display_frame = frame
+
+            cv2.putText(display_frame, f"Resets: {resets}", row_one, 
+                        text_font, text_font_scale, green, text_thickness, cv2.LINE_AA)
+            cv2.putText(display_frame, last_seen, row_two, 
+                        text_font, text_font_scale, (0, 0, 255), text_thickness, cv2.LINE_AA)
+            cv2.imshow(window_name, display_frame)
+
+            if shiny_detected == True:
+                entering_holding_pattern = True
+
+        #If shiny has been found, enter holding pattern
         else:
-            cv2.putText(frame, text, org, font, font_scale, (0, 0, 255), thickness, cv2.LINE_AA)
-            cv2.putText(frame, last_seen, org2, font, font_scale, (0, 0, 255), thickness, cv2.LINE_AA)
-            cv2.imshow("Live Shiny Detection", frame)
+            cv2.putText(frame, f"RESETS: {resets}", row_one, 
+                        text_font, text_font_scale, green, text_thickness, cv2.LINE_AA)
+            cv2.putText(frame, "SHINY!!!!! Entering holding pattern.", row_two, 
+                        text_font, text_font_scale, (0, 0, 255), text_thickness, cv2.LINE_AA)
+            cv2.imshow(window_name, frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -226,6 +255,8 @@ def run_live(settings, hunt_name, all_settings):
                 json.dump(all_settings, f, indent=2)
                 f.close()
             break
+
+        #Inputs when window is selected, S to Start.
         if key == ord("s"):
             async_controller_sequence(ser, '1')
         if key == ord("a"):
@@ -234,16 +265,16 @@ def run_live(settings, hunt_name, all_settings):
             async_controller_sequence(ser, 'B')
         if key == ord("u"):
             async_controller_sequence(ser, 'U')
-        if key == ord("c"):
+        if key == ord("d"):
+            async_controller_sequence(ser, 'D')
+        if key == ord("t"):
+            enable_box = not enable_box
+        if key == ord("c") or key == ord("q"):
             with open(CONFIG_PATH, "w") as f:
                 all_settings[hunt]["resets"] = resets
                 json.dump(all_settings, f, indent=2)
                 f.close()
             break
-        # if key == ord("t"):
-        #     enable_box = not enable_box
-        # if key == ord("b"):
-        #     enable_box = not enable_box
 
     cap.release()
     cv2.destroyAllWindows()
@@ -263,10 +294,8 @@ if __name__ == "__main__":
             os.makedirs(screenshot_folder, exist_ok=True)
             resets = data["resets"]
             f.close()
-        # test = data["shiny_bounding_box"]
-        # x, y, w, h = test
-        # print(f"x:{x}, y:{y}, w:{w}, h:{h}")
-        print("Config verified, launching video.")
+        
+        print("Config verified")
         run_live(data, hunt, config)
     except Exception as e:
         print(f"Error with config or config path: {e}")

@@ -130,7 +130,7 @@ void loop() {
           Gamepad.dPad(NSGAMEPAD_DPAD_DOWN);
           Gamepad.write();
 
-          delay(3250);
+          delay(3500);
 
           Gamepad.release(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
@@ -140,7 +140,7 @@ void loop() {
           Gamepad.dPad(NSGAMEPAD_DPAD_UP);
           Gamepad.write();
 
-          delay(3250);
+          delay(3500);
 
           Gamepad.release(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
