@@ -77,6 +77,7 @@ def setup(hunt_name):
     if "path" not in keys or os.path.isfile(data["path"]):
         os.makedirs(f"hunt/{hunt_name}", exist_ok=True)
         data["path"] = f"hunt/{hunt_name}"
+        os.makedirs(f"hunt/{hunt_name}/screenshots", exist_ok=True)
 
     # Rewrite config if needed
     if needs_updating or controller_ports["updated"]:

@@ -118,20 +118,24 @@ void loop() {
         char step = Serial0.read();
         Serial0.println(step);
         if (step == '1'){
-          Serial0.write("Beginning Scripted Input");
+          // Run from battle
+          Serial0.write("Beginning Scripted Inputs");
           dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
           buttonPress(NSButton_A, PRESS_TIME);
-
-          delay(5000);
-
+          
+          // Wait for "Shaymin disappeared into the flowers"
+          delay(5000); //could shorten a little, maybe down to 4.75, mightve failed last time
+          
           buttonPress(NSButton_A, PRESS_TIME);
 
+          // Sprint down 3.25
           Gamepad.press(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_DOWN);
           Gamepad.write();
 
-          delay(3500);
+          delay(3250); 
 
+          // Sprint up for 3.5
           Gamepad.release(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
           Gamepad.write();
@@ -140,24 +144,25 @@ void loop() {
           Gamepad.dPad(NSGAMEPAD_DPAD_UP);
           Gamepad.write();
 
-          delay(3500);
-
+          delay(3500); //sometimes for some reason it doesnt run up enough so
+          
           Gamepad.release(NSButton_B);
           Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
           Gamepad.write();
 
+          // Begin Shaymin fight
           buttonPress(NSButton_A, PRESS_TIME);
-          delay(3500);
+          delay(3000); //wait for animation to be done
           buttonPress(NSButton_A, PRESS_TIME);
 
           Serial0.write("Starting Battle");
-          delay(6000);
+          delay(5500);
           Serial0.write("Start Shiny Check");
-          delay(3000);
+          delay(3500);
           Serial0.write("Screenshot");
-          delay(7000);
+          delay(6500);
           Serial0.write("End Shiny Check");
-          delay(5000);
+          delay(3750); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
           Serial0.write("End Scripted Input");
         }
         else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }

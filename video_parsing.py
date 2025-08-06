@@ -196,6 +196,8 @@ def run_live(settings, hunt_name, all_settings):
         if not ret:
             continue  # drop and try next frame
         
+        # TO DO - FLUSH SERIAL ON RESTART? (add to init method)
+
         # If shiny has been detected audio or visual, we don't want any potential for input
         if not entering_holding_pattern:
             #Tracks most recent serial output from microcontroller, which dictates behavior.
@@ -269,6 +271,8 @@ def run_live(settings, hunt_name, all_settings):
             async_controller_sequence(ser, 'D')
         if key == ord("t"):
             enable_box = not enable_box
+        if key == ord("p"):
+            entering_holding_pattern = True
         if key == ord("c") or key == ord("q"):
             with open(CONFIG_PATH, "w") as f:
                 all_settings[hunt]["resets"] = resets

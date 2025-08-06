@@ -4,8 +4,22 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 130,
+    "resets": 2206,
     "path": "hunt/shaymin_bdsp",
+    "shiny_bounding_box": [
+      1120,
+      450,
+      590,
+      440
+    ]
+  },
+  "arceus_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 0,
+    "path": "hunt/arceus_bdsp",
     "shiny_bounding_box": [
       1120,
       450,
