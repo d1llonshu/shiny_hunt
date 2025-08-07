@@ -4,7 +4,7 @@ from collections import deque
 import os
 import json
 
-from setup import setup, CONFIG_PATH, RESET_CONFIG_PATH
+from setup import setup, CONFIG_PATH, RESET_CONFIG_PATH, HUNT_NAME_MANUAL
 from audio_parsing import listen
 from controller import *
 
@@ -154,7 +154,36 @@ def process_frame(frame, roi_rect):
         cv2.imwrite(fname, frame)
     return trigger, display
 
-def run_live(settings, hunt_name, all_settings):
+def darkness_check(frame, roi_rect):
+    
+    x, y, w, h = roi_rect
+    h_frame, w_frame = frame.shape[:2]
+    # clamp ROI to frame bounds
+    #      1120,450,590,440
+    x = max(0, min(x, w_frame - 1))
+    y = max(0, min(y, h_frame - 1))
+    w = max(1, min(w, w_frame - x))
+    h = max(1, min(h, h_frame - y))
+
+    roi = frame[y:y+h, x:x+w]
+
+    # if roi != should_equal:
+    #     darkness = False
+
+    # Visualization only ROI content with circles and bounding box
+    #      1120,450,590,440
+    # draw bounding box
+    display = frame.copy()
+    cv2.rectangle(display, (x,y), (x+w, y+h), (255, 0, 0), 2)
+    if np.all(roi == 0):
+        darkness = True
+    else:
+        darkness = False
+    # cv2.putText(frame, f"Resets: {resets}", (5,20),
+    #         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+    return darkness, display
+
+def run_live(settings, hunt_name, all_settings, testing=None):
     #Start serial communication
     ser = init_serial(settings["controller_com_port"])
     start_serial_reader(ser)
@@ -173,9 +202,11 @@ def run_live(settings, hunt_name, all_settings):
     window_name = f"{hunt_name} Shiny Hunt"
 
     #Start Video Capture
-    print(f"Starting Video Capture at Index [{settings['video_device_index']}]")
-    # cap = cv2.VideoCapture("hunt/shaymin_bdsp/reference_images/sample_vid.mp4")
-    cap = cv2.VideoCapture(settings["video_device_index"])
+    # print(f"Starting Video Capture at Index [{settings['video_device_index']}]")
+    if testing != None:
+        cap = cv2.VideoCapture(testing)
+    else:
+        cap = cv2.VideoCapture(settings["video_device_index"])
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION_HEIGHT)
     if not cap.isOpened():
@@ -227,11 +258,7 @@ def run_live(settings, hunt_name, all_settings):
                 #for resets that need the game to restart
                 elif ser_log == "Starting Darkness Check":
                     enable_game_load_box = True
-                elif ser_log == "Ending Darkness Check":
-                    enable_game_load_box = False
-                    current_step += 1
-                    async_controller_sequence(ser, steps[current_step])
-                
+
                 last_seen = ser_log
             # TESTING
             if os.path.isfile(shiny_folder + "shiny.wav"):
@@ -244,6 +271,12 @@ def run_live(settings, hunt_name, all_settings):
                 display_frame = processed_frame
                 if trigger:
                     entering_holding_pattern = True
+            elif enable_game_load_box:
+                darkness, display_frame = darkness_check(frame, game_load_box)
+                if not darkness:
+                    enable_game_load_box = False
+                    current_step += 1
+                    async_controller_sequence(ser, steps[current_step])
             else:
                 display_frame = frame
 
@@ -275,6 +308,12 @@ def run_live(settings, hunt_name, all_settings):
         #Inputs when window is selected, S to Start.
         if key == ord("s"):
             async_controller_sequence(ser, '1')
+        if key == ord("1"):
+            async_controller_sequence(ser, '1')
+        if key == ord("2"):
+            async_controller_sequence(ser, '2')
+        if key == ord("3"):
+            async_controller_sequence(ser, '3')
         if key == ord("a"):
             async_controller_sequence(ser, 'A')
         if key == ord("b"):
@@ -284,7 +323,8 @@ def run_live(settings, hunt_name, all_settings):
         if key == ord("d"):
             async_controller_sequence(ser, 'D')
         if key == ord("t"):
-            enable_game_load_box = not enable_game_load_box
+            # enable_game_load_box = not enable_game_load_box
+            enable_shiny_detect = not enable_game_load_box
         if key == ord("p"):
             entering_holding_pattern = True
         if key == ord("c") or key == ord("q"):
@@ -302,15 +342,17 @@ if __name__ == "__main__":
     print("Before typing in the hunt name, please make sure the switch set up to recieve the first scripted input.")
     # hunt = input("hunt_name (case sensitive): ")
     # hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)
-    hunt = "shaymin_bdsp"
+    hunt = HUNT_NAME_MANUAL
 
     try:
         with open(RESET_CONFIG_PATH, "r") as f:
             reset_config = json.load(f)
             hunt_strs = hunt.split("_") #given the format it should always be [pkmn, game]
             game_series = hunt_strs[1]
-            game_load_box = reset_config[game_series]
+            reset_data = reset_config[game_series]
+            game_load_box = reset_data["load_box"]
             f.close()
+        print("Game Config Verified")
     except Exception as e:
         print(f"Error with reset config or reset config path: {e}")
     
@@ -325,7 +367,8 @@ if __name__ == "__main__":
             resets = data["resets"]
             f.close()
 
-        print("Config verified")
+        print("Hunt Config Verified")
+        # run_live(data, hunt, config, testing="hunt/arceus_bdsp/reference_images/sample_vid.mp4")
         run_live(data, hunt, config)
     except Exception as e:
         print(f"Error with config or config path: {e}")

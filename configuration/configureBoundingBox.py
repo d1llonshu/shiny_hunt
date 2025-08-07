@@ -27,6 +27,7 @@ def setup(deviceIndex: int, bounding_box=None):
         print(f"Manually Provided Bounding Box: {bounding_box}")
         return bounding_box
     print("Setting up Bounding Box...")
+    print("Window may to a few seconds to load")
     print("Press S or Close the Window to Save")
     cap = cv2.VideoCapture(deviceIndex, cv2.CAP_MSMF) #set to msmf to better handle capture cards
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION_WIDTH)

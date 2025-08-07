@@ -18,13 +18,13 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 0,
+    "resets": 9,
     "path": "hunt/arceus_bdsp",
     "shiny_bounding_box": [
-      1120,
-      450,
-      590,
-      440
+      1110,
+      440,
+      500,
+      510
     ]
   }
 }

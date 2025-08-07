@@ -125,7 +125,7 @@ def process_video(path):
     cv2.destroyAllWindows()
 
 def main():
-    IMAGE_PATH = "hunt/shaymin_bdsp/reference_images/shaymin_shine_night.png"
+    IMAGE_PATH = "hunt/arceus_bdsp/reference_images/shiny.png"
 
     ext = os.path.splitext(IMAGE_PATH)[1].lower()
     if ext in [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"]:

@@ -5,7 +5,7 @@ import numpy as np
 from scipy.signal import correlate
 import json
 import os
-from setup import CONFIG_PATH
+from setup import CONFIG_PATH, HUNT_NAME_MANUAL
 
 # === Configuration ===
 REF_PATH = 'samples/reference_material/sparkle.mp3'  # Path to your 2-second sparkle sound
@@ -86,7 +86,7 @@ def listen(device_index):
 
 if __name__ == "__main__":
     # hunt = input("hunt_name (case sensitive): ")
-    hunt = "shaymin_bdsp"
+    hunt = HUNT_NAME_MANUAL
     try:
         with open(CONFIG_PATH, "r") as f:
             config = json.load(f)

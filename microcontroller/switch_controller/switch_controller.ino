@@ -83,53 +83,85 @@ void setup() {
 //   Gamepad.write();
 // }
 
-void shayminScript(char step){
-// Run from battle
-  Serial0.write("Beginning Scripted Inputs");
-  dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
-  buttonPress(NSButton_A, PRESS_TIME);
+// void shayminScript(char step){
+// // Run from battle
+//   Serial0.write("Beginning Scripted Inputs");
+//   dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+//   buttonPress(NSButton_A, PRESS_TIME);
   
-  // Wait for "Shaymin disappeared into the flowers"
-  delay(5000); //could shorten a little, maybe down to 4.75, mightve failed last time
+//   // Wait for "Shaymin disappeared into the flowers"
+//   delay(5000); //could shorten a little, maybe down to 4.75, mightve failed last time
   
-  buttonPress(NSButton_A, PRESS_TIME);
+//   buttonPress(NSButton_A, PRESS_TIME);
 
-  // Sprint down 3.25
-  Gamepad.press(NSButton_B);
-  Gamepad.dPad(NSGAMEPAD_DPAD_DOWN);
-  Gamepad.write();
+//   // Sprint down 3.25
+//   Gamepad.press(NSButton_B);
+//   Gamepad.dPad(NSGAMEPAD_DPAD_DOWN);
+//   Gamepad.write();
 
-  delay(3250); 
+//   delay(3250); 
 
-  // Sprint up for 3.5
-  Gamepad.release(NSButton_B);
-  Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
-  Gamepad.write();
+//   // Sprint up for 3.5
+//   Gamepad.release(NSButton_B);
+//   Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+//   Gamepad.write();
 
-  Gamepad.press(NSButton_B);
-  Gamepad.dPad(NSGAMEPAD_DPAD_UP);
-  Gamepad.write();
+//   Gamepad.press(NSButton_B);
+//   Gamepad.dPad(NSGAMEPAD_DPAD_UP);
+//   Gamepad.write();
 
-  delay(3500); //sometimes for some reason it doesnt run up enough so
+//   delay(3500); //sometimes for some reason it doesnt run up enough so
   
-  Gamepad.release(NSButton_B);
-  Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
-  Gamepad.write();
+//   Gamepad.release(NSButton_B);
+//   Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+//   Gamepad.write();
 
-  // Begin Shaymin fight
-  buttonPress(NSButton_A, PRESS_TIME);
-  delay(3000); //wait for animation to be done
-  buttonPress(NSButton_A, PRESS_TIME);
+//   // Begin Shaymin fight
+//   buttonPress(NSButton_A, PRESS_TIME);
+//   delay(3000); //wait for animation to be done
+//   buttonPress(NSButton_A, PRESS_TIME);
 
-  Serial0.write("Starting Battle");
-  delay(5500);
-  Serial0.write("Start Shiny Check");
-  delay(3500);
-  Serial0.write("Screenshot");
-  delay(6500);
-  Serial0.write("End Shiny Check");
-  delay(3750); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
-  Serial0.write("End Scripted Input");
+//   Serial0.write("Starting Battle");
+//   delay(5500);
+//   Serial0.write("Start Shiny Check");
+//   delay(3500);
+//   Serial0.write("Screenshot");
+//   delay(6500);
+//   Serial0.write("End Shiny Check");
+//   delay(3750); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
+//   Serial0.write("End Scripted Input");
+// }
+
+void bdsp_reset(char step) {
+  //in battle -> close game -> start game
+  if (step == '1'){
+    Serial0.write("Resetting");
+    buttonPress(NSButton_Home, PRESS_TIME);
+    delay(500);
+    buttonPress(NSButton_X, PRESS_TIME);
+    delay(500);
+    buttonPress(NSButton_A, PRESS_TIME);
+    Serial0.write("Pressing A");
+    delay(750);
+    buttonPress(NSButton_A, PRESS_TIME);
+    delay(750);
+    buttonPress(NSButton_A, PRESS_TIME);
+    delay(2000); //Waiting out the animation from the switch on game startup, excess time here is fine
+    Serial0.write("Starting Darkness Check");
+  }
+  //start game -> palkia/dialga animation
+  else if (step == '2') {
+    Serial0.write("Ending Darkness Check"); //need a write here because the ser_log needs to be updated in the video_parser.py
+    delay(2500);//can't press the button immediately
+    Serial0.write("Pressing A Button");
+    //While a center bounding box is pitch black, wait (wait 25 seconds technically)
+    buttonPress(NSButton_A, PRESS_TIME);
+    delay(3000);
+    buttonPress(NSButton_A, PRESS_TIME);
+    delay(3000); //Wait for animation to finish before starting check, excess time here is fine
+    Serial0.write("Starting Darkness Check");
+    //wait until the center box isnt pitch black again.
+  }
 }
 
 //Upload thru COM8, unplug, plug USB port into Switch, plug COM8 in again.
@@ -145,37 +177,30 @@ void loop() {
         char step = Serial0.read();
         Serial0.println(step);
         if (step == '1'){
-          Serial0.write("Resetting");
-          buttonPress(NSButton_Home, PRESS_TIME);
-          buttonPress(NSButton_X, PRESS_TIME);
-          buttonPress(NSButton_A, PRESS_TIME);
-          delay(1000);
-          buttonPress(NSButton_A, PRESS_TIME);
-          buttonPress(NSButton_A, PRESS_TIME);
-          delay(2000)//Waiting out the animation from the switch on game startup
-          Serial0.write("Starting Darkness Check")
+          bdsp_reset('1');
         }
         else if (step == '2') {
-          Serial0.write("Ending Darkness Check") //need a write here because the ser_log needs to be updated in the video_parser.py
-          //While a center bounding box is pitch black, wait (wait 25 seconds technically)
-          buttonPress(NSButton_A, PRESS_TIME);
-          delay(1000);
-          buttonPress(NSButton_A, PRESS_TIME);
-
-          Serial0.write("Starting Darkness Check 2")
+          bdsp_reset('2');
         }
         else if (step == '3') {
-          Serial0.write("Ending Darkness Check")
           //after load
-          //wait until the center box isnt pitch black again.
           //dpad up
           //wait 14
-          //a
-          //wait 10-12 (12 probably upper bound)
-          Serial0.write("Starting Shiny Check")
-          Serial0.write("Screenshotting")
-          Serial0.write("Ending Shiny Check")
-          Serial0.write("Ending Scripted Input")
+          Serial0.write("Ending Darkness Check");
+          delay(1000); //Wait for game to fully load
+          dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+          delay(13000);//cutscene
+          buttonPress(NSButton_A, PRESS_TIME);
+          // wait 10-12 (12 probably upper bound)
+          Serial0.write("Starting Battle");
+          delay(4500);
+          Serial0.write("Starting Shiny Check");
+          delay(3500);
+          Serial0.write("Screenshotting");
+          delay(5500);
+          Serial0.write("Ending Shiny Check");
+          delay(4000); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
+          Serial0.write("Ending Scripted Input");
           //shiny check
         }
         else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
