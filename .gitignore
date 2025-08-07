@@ -3,3 +3,4 @@ samples/audio_setup_files
 samples/video_setup_files
 shiny_hunt
 hunt
+__pycache__
