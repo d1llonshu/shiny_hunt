@@ -4,7 +4,7 @@ from collections import deque
 import os
 import json
 
-from setup import setup, CONFIG_PATH
+from setup import setup, CONFIG_PATH, RESET_CONFIG_PATH
 from audio_parsing import listen
 from controller import *
 
@@ -35,6 +35,7 @@ should_screenshot = False
 shiny_detected = False
 screenshot_folder = ""
 shiny_folder = ""
+game_load_box = [0,0,0,0]
 
 #For testing how many frames a shiny is eligible to be detected
 frame_count = 0
@@ -182,8 +183,11 @@ def run_live(settings, hunt_name, all_settings):
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
     last_seen = ""
-    enable_box = False
+    enable_game_load_box = False
+    enable_shiny_detect = False
     entering_holding_pattern = False
+    steps = ['0', '1', '2', '3']
+    current_step = 1
 
     while True:
         # TO SEE HOW MANY FRAMES IT WILL DETECT, MUST REMOVE BEFORE USE!!!
@@ -203,13 +207,13 @@ def run_live(settings, hunt_name, all_settings):
             #Tracks most recent serial output from microcontroller, which dictates behavior.
             ser_log = get_latest_command()
             if ser_log is not None and ser_log != last_seen:
-                if ser_log == "Start Shiny Check":
-                    enable_box = True
-                elif ser_log == "End Shiny Check":
-                    enable_box = False
-                elif ser_log == "Screenshot":
+                if ser_log == "Starting Shiny Check":
+                    enable_shiny_detect = True
+                elif ser_log == "Ending Shiny Check":
+                    enable_shiny_detect = False
+                elif ser_log == "Screenshotting":
                     should_screenshot = True
-                elif ser_log == "End Scripted Input":
+                elif ser_log == "Ending Scripted Input":
                     audio_path = shiny_folder + "shiny.wav"
                     shiny_detected_audio = False
                     if os.path.isfile(audio_path):
@@ -217,7 +221,17 @@ def run_live(settings, hunt_name, all_settings):
                         entering_holding_pattern = True
                     if shiny_detected == False and shiny_detected_audio == False:
                         resets += 1
-                        async_controller_sequence(ser, '1')
+                        current_step = 1
+                        async_controller_sequence(ser, steps[current_step])
+                        
+                #for resets that need the game to restart
+                elif ser_log == "Starting Darkness Check":
+                    enable_game_load_box = True
+                elif ser_log == "Ending Darkness Check":
+                    enable_game_load_box = False
+                    current_step += 1
+                    async_controller_sequence(ser, steps[current_step])
+                
                 last_seen = ser_log
             # TESTING
             if os.path.isfile(shiny_folder + "shiny.wav"):
@@ -225,7 +239,7 @@ def run_live(settings, hunt_name, all_settings):
             
 
             #Display is different depending on if the shiny detection is enabled
-            if enable_box:
+            if enable_shiny_detect:
                 trigger, processed_frame = process_frame(frame, settings["shiny_bounding_box"])
                 display_frame = processed_frame
                 if trigger:
@@ -270,7 +284,7 @@ def run_live(settings, hunt_name, all_settings):
         if key == ord("d"):
             async_controller_sequence(ser, 'D')
         if key == ord("t"):
-            enable_box = not enable_box
+            enable_game_load_box = not enable_game_load_box
         if key == ord("p"):
             entering_holding_pattern = True
         if key == ord("c") or key == ord("q"):
@@ -287,7 +301,19 @@ if __name__ == "__main__":
     #looks for HUNT_NAME in config.json
     print("Before typing in the hunt name, please make sure the switch set up to recieve the first scripted input.")
     # hunt = input("hunt_name (case sensitive): ")
-    hunt = "shaymin_bdsp" #hard coding for testing right now
+    # hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)
+    hunt = "shaymin_bdsp"
+
+    try:
+        with open(RESET_CONFIG_PATH, "r") as f:
+            reset_config = json.load(f)
+            hunt_strs = hunt.split("_") #given the format it should always be [pkmn, game]
+            game_series = hunt_strs[1]
+            game_load_box = reset_config[game_series]
+            f.close()
+    except Exception as e:
+        print(f"Error with reset config or reset config path: {e}")
+    
     try:
         with open(CONFIG_PATH, "r") as f:
             config = json.load(f)
@@ -298,9 +324,8 @@ if __name__ == "__main__":
             os.makedirs(screenshot_folder, exist_ok=True)
             resets = data["resets"]
             f.close()
-        
+
         print("Config verified")
         run_live(data, hunt, config)
     except Exception as e:
         print(f"Error with config or config path: {e}")
-    
