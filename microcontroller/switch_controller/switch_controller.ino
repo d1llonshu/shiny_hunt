@@ -197,9 +197,9 @@ void loop() {
           Serial0.write("Starting Shiny Check");
           delay(3500);
           Serial0.write("Screenshotting");
-          delay(5500);
+          delay(6500);
           Serial0.write("Ending Shiny Check");
-          delay(4000); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
+          delay(3000); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
           Serial0.write("Ending Scripted Input");
           //shiny check
         }
