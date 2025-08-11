@@ -89,6 +89,11 @@ def setup(hunt_name):
         else:
             data["roaming"] = False
         needs_updating = True
+    
+    if "steps" not in keys:
+        data["steps"] = 3
+        print("Steps not found: setting to a placeholder (3)")
+
 
     # Rewrite config if needed
     if needs_updating or controller_ports["updated"]:
@@ -109,9 +114,9 @@ def setup(hunt_name):
 if __name__ == "__main__":
     testing = True
     if testing:
-        # configureBoundingBox.setup(0)
+        configureBoundingBox.setup(0)
         # configureAudioDevice.testAudioDevice(2)
-        setup("cresselia_bdsp")
+        # setup("cresselia_bdsp")
     else:
         print("hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)")
         hunt = input("hunt_name (case sensitive): ")

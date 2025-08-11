@@ -11,7 +11,9 @@
       450,
       590,
       440
-    ]
+    ],
+    "roaming": false,
+    "steps": 2
   },
   "arceus_bdsp": {
     "audio_device_index": 2,
@@ -25,20 +27,24 @@
       440,
       500,
       510
-    ]
+    ],
+    "roaming": false,
+    "steps": 3
   },
   "cresselia_bdsp": {
     "audio_device_index": 2,
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 0,
+    "resets": 1,
     "path": "hunt/cresselia_bdsp",
     "shiny_bounding_box": [
       1110,
       440,
       500,
       510
-    ]
+    ],
+    "roaming": true,
+    "steps": 6
   }
 }

@@ -91,5 +91,6 @@ def setup(deviceIndex: int, bounding_box=None):
 
     cap.release()
     cv2.destroyAllWindows()
-    print(f"Bounding Box Selected: {roi}")
-    return roi
+    res = list(roi)
+    print(f"Bounding Box Selected: {res}")
+    return res

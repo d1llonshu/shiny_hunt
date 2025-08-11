@@ -226,7 +226,7 @@ void loop() {
           //open menu
           buttonPress(NSButton_X, PRESS_TIME);
           delay(1000);
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          // dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
           buttonPress(NSButton_A, PRESS_TIME);
           delay(1000);
           dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
@@ -236,16 +236,106 @@ void loop() {
           buttonPress(NSButton_A, PRESS_TIME);
           Serial0.write("Teleporting");
 
-          delay(11000);
+          delay(11500);
           Serial0.write("Teleport Done");
-          comboPress(NSButton_B, NSGAMEPAD_DPAD_LEFT, 1000);
+          comboPress(NSButton_B, NSGAMEPAD_DPAD_LEFT, 750);
           delay(250);
           comboPress(NSButton_B, NSGAMEPAD_DPAD_DOWN, 3250);
 
           delay(500);
-          buttonPress(NSButton_RightThrottle, PRESS_TIME); //not working
-          Serial0.write("Running Done");
+          buttonPress(NSButton_RightTrigger, 250); //not working
+          Serial0.write("Starting Roaming Check");
+          delay(1500);
+          Serial0.write("Ending Initial Roaming Check");
+          delay(500);
+          
           //shiny check
+        }
+        //loop for roaming
+        else if (step == '4') {
+          // comboPress(NSButton_B, NSGAMEPAD_DPAD_UP, 250);
+          dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+          dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+          delay(250);
+          dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
+          dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
+          // delay(250);
+          Serial0.write("Starting Roaming Check");
+          delay(1250);
+          Serial0.write("Ending Roaming Check");
+          delay(250);
+        }
+        else if (step == '5'){
+          Serial0.write("Applying Repel");
+          buttonPress(NSButton_X, PRESS_TIME);
+          //Wait for menu to open, should be on pokemon because of teleport
+          delay(1000);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          buttonPress(NSButton_A, PRESS_TIME);
+          //wait for bag to open
+          delay(750);
+          //Move to other items pocket
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(250);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(250);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(250);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(250);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(250);
+          //use repel, assuming it is in the first slot
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(250);
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(250);
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(250);
+          buttonPress(NSButton_B, PRESS_TIME);
+          delay(750);
+          buttonPress(NSButton_B, PRESS_TIME);
+          delay(1000);
+          buttonPress(NSButton_B, PRESS_TIME);
+          //Wait for menu to close
+          Serial0.write("Walking to Grass");
+          delay(1000);
+          int count = 0;
+          while(count < 8){
+            dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
+            delay(150);
+            count = count + 1;
+          }
+          count = 0;
+          while(count < 8){
+            dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+            delay(150);
+            count = count + 1;
+          }
+          Serial0.write("In Grass");
+          delay(500);
+        }
+        else if (step == '6'){
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(150);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          delay(150);
+          dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME);
+          delay(150);
+          dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME);
+          delay(150);
+          Serial0.write("Done Moving");
+        }
+        else if (step == '7'){
+          Serial0.write("Starting Battle");
+          delay(1500);
+          // Serial0.write("Starting Shiny Check");
+          delay(1500);
+          Serial0.write("Screenshotting");
+          delay(1500);
+          // Serial0.write("Ending Shiny Check");
+          delay(1500); 
+          Serial0.write("Ending Scripted Input");
         }
         else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
         else if (step == 'B') { buttonPress(NSButton_B, PRESS_TIME); }

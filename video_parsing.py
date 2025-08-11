@@ -35,7 +35,13 @@ should_screenshot = False
 shiny_detected = False
 screenshot_folder = ""
 shiny_folder = ""
+steps = 3
 game_load_box = [0,0,0,0]
+
+roaming_box = [0,0,0,0]
+is_roaming = False
+roaming_detected = False
+roaming_battle = False
 
 #For testing how many frames a shiny is eligible to be detected
 frame_count = 0
@@ -154,6 +160,35 @@ def process_frame(frame, roi_rect):
         cv2.imwrite(fname, frame)
     return trigger, display
 
+def roaming_battle_check(frame, roi_rect):
+    global roaming_battle
+
+    x, y, w, h = roi_rect
+    h_frame, w_frame = frame.shape[:2]
+    # clamp ROI to frame bounds
+    #      1120,450,590,440
+    x = max(0, min(x, w_frame - 1))
+    y = max(0, min(y, h_frame - 1))
+    w = max(1, min(w, w_frame - x))
+    h = max(1, min(h, h_frame - y))
+
+    roi = frame[y:y+h, x:x+w]
+
+    # if roi != should_equal:
+    #     darkness = False
+
+    # Visualization only ROI content with circles and bounding box
+    #      1120,450,590,440
+    # draw bounding box
+    display = frame.copy()
+    cv2.rectangle(display, (x,y), (x+w, y+h), (255, 0, 0), 2)
+    if np.all(roi == 255):
+        roaming_battle = True
+
+    cv2.putText(display, f"Roaming Battle: {roaming_battle}", (10, 90),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+    return display
+
 def darkness_check(frame, roi_rect):
     
     x, y, w, h = roi_rect
@@ -183,6 +218,48 @@ def darkness_check(frame, roi_rect):
     #         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
     return darkness, display
 
+def poketch_check(frame, roi_rect):
+
+    global roaming_detected
+    
+    temp_roam = False
+    x, y, w, h = roi_rect
+    h_frame, w_frame = frame.shape[:2]
+    # clamp ROI to frame bounds
+    #      1120,450,590,440
+    x = max(0, min(x, w_frame - 1))
+    y = max(0, min(y, h_frame - 1))
+    w = max(1, min(w, w_frame - x))
+    h = max(1, min(h, h_frame - y))
+
+    roi = frame[y:y+h, x:x+w]
+    formula_threshold = 40.0 #be below it to be classified as roaming detected (this is a darkness detection so to speak)
+    
+    # if roi != should_equal:
+    #     darkness = False
+
+    # Visualization only ROI content with circles and bounding box
+    #      1120,450,590,440
+    # draw bounding box
+    display = frame.copy()
+    cv2.rectangle(display, (x,y), (x+w, y+h), (255, 0, 0), 2)
+    for pixel in roi[0]:
+        b, g, r = pixel
+        formula = 0.2126*r +0.7152*g+0.0722*b
+        if formula < formula_threshold:
+            roaming_detected = True
+            temp_roam = True
+        
+    if temp_roam:
+        cv2.putText(display, f"Roaming", (10, 90),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+    else:
+        
+        cv2.putText(display, f"None", (10, 90),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255), 2)
+    return display
+
+
 def run_live(settings, hunt_name, all_settings, testing=None):
     #Start serial communication
     ser = init_serial(settings["controller_com_port"])
@@ -191,6 +268,8 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     global brightness_baseline, sparkle_history, cooldown_frames, should_screenshot, shiny_detected, resets
     
     global frame_count
+
+    global roaming_detected, roaming_battle
 
     #openCV display related values
     text_font = cv2.FONT_HERSHEY_SIMPLEX
@@ -216,13 +295,15 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     last_seen = ""
     enable_game_load_box = False
     enable_shiny_detect = False
+    enable_roaming_box = False
+    enable_roaming_battle_box = False
     entering_holding_pattern = False
     #arceus steps = 3
     #cresselia steps = 5
     #3 - reset -> tp -> run down
     #4 - loop for roaming
     #5 - repel + run to grass + shiny check
-    steps = ['0', '1', '2', '3', '4', '5']
+    global steps
     current_step = 1
 
     while True:
@@ -243,27 +324,65 @@ def run_live(settings, hunt_name, all_settings, testing=None):
             #Tracks most recent serial output from microcontroller, which dictates behavior.
             ser_log = get_latest_command()
             if ser_log is not None and ser_log != last_seen:
-                if ser_log == "Starting Shiny Check":
-                    enable_shiny_detect = True
-                elif ser_log == "Ending Shiny Check":
-                    enable_shiny_detect = False
-                # elif ser_log == "Screenshotting":
-                #     should_screenshot = True
-                # elif ser_log == "Ending Scripted Input":
-                #     audio_path = shiny_folder + "shiny.wav"
-                #     shiny_detected_audio = False
-                #     if os.path.isfile(audio_path):
-                #         shiny_detected_audio = True
-                #         entering_holding_pattern = True
-                #     if shiny_detected == False and shiny_detected_audio == False:
-                #         resets += 1
-                #         current_step = 1
-                #         async_controller_sequence(ser, steps[current_step])
+                if ser_log == "Screenshotting":
+                    should_screenshot = True
+                # elif ser_log == "Starting Shiny Check":
+                #     enable_shiny_detect = True
+                # elif ser_log == "Ending Shiny Check":
+                #     enable_shiny_detect = False
+
+                elif ser_log == "Ending Scripted Input":
+                    audio_path = shiny_folder + "shiny.wav"
+                    shiny_detected_audio = False
+                    if os.path.isfile(audio_path):
+                        shiny_detected_audio = True
+                        entering_holding_pattern = True
+                    if shiny_detected == False and shiny_detected_audio == False:
+                        resets += 1
+                        current_step = 1
+                        async_controller_sequence(ser, str(current_step))
                         
                 #for resets that need the game to restart
                 elif ser_log == "Starting Darkness Check":
                     enable_game_load_box = True
+                
+                #for roaming encounters
+                elif ser_log == "Starting Roaming Check":
+                    enable_roaming_box = True
+                elif ser_log == "Ending Roaming Check":
+                    if roaming_detected:
+                        roaming_detected = False
+                        enable_roaming_box = False
+                        current_step += 1
+                        async_controller_sequence(ser, str(current_step))
+                    else:
+                        # stay on the same step until we hit roaming
+                        enable_roaming_box = False #disable the box to avoid false positive of roaming being in spot when we arent
+                        async_controller_sequence(ser, str(current_step))
 
+                elif ser_log == "Ending Initial Roaming Check":
+                    if roaming_detected:
+                        roaming_detected = False
+                        enable_roaming_box = False
+                        current_step += 2 #skip the loop step
+                        async_controller_sequence(ser, str(current_step))
+                    else:
+                        current_step += 1 #enter loop step
+                        enable_roaming_box = False
+                        async_controller_sequence(ser, str(current_step))
+                elif ser_log == "In Grass":
+                    current_step += 1
+                    enable_roaming_battle_box = True
+                    async_controller_sequence(ser, str(current_step))
+                
+                elif ser_log == "Done Moving":
+                    if roaming_battle == False:
+                        async_controller_sequence(ser, str(current_step))
+                    else:
+                        enable_roaming_battle_box = False
+                        roaming_battle = False
+                        current_step += 1
+                        async_controller_sequence(ser, str(current_step))
                 last_seen = ser_log
             # TESTING
             if os.path.isfile(shiny_folder + "shiny.wav"):
@@ -276,12 +395,17 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                 display_frame = processed_frame
                 if trigger:
                     entering_holding_pattern = True
+            #only controller input outside of the loop above        
             elif enable_game_load_box:
                 darkness, display_frame = darkness_check(frame, game_load_box)
                 if not darkness:
                     enable_game_load_box = False
                     current_step += 1
-                    async_controller_sequence(ser, steps[current_step])
+                    async_controller_sequence(ser, str(current_step))
+            elif enable_roaming_box:
+                display_frame = poketch_check(frame, roaming_box)
+            elif enable_roaming_battle_box:
+                display_frame = roaming_battle_check(frame, roaming_box)
             else:
                 display_frame = frame
 
@@ -317,8 +441,19 @@ def run_live(settings, hunt_name, all_settings, testing=None):
             async_controller_sequence(ser, '1')
         if key == ord("2"):
             async_controller_sequence(ser, '2')
+            current_step = 2
         if key == ord("3"):
             async_controller_sequence(ser, '3')
+            current_step = 3
+        if key == ord("4"):
+            async_controller_sequence(ser, "4")       
+            current_step = 4 
+        if key == ord("5"):
+            async_controller_sequence(ser, "5")
+            current_step = 5
+        if key == ord("6"):
+            async_controller_sequence(ser, "6")
+            current_step = 6
         if key == ord("a"):
             async_controller_sequence(ser, 'A')
         if key == ord("b"):
@@ -328,8 +463,9 @@ def run_live(settings, hunt_name, all_settings, testing=None):
         if key == ord("d"):
             async_controller_sequence(ser, 'D')
         if key == ord("t"):
-            # enable_game_load_box = not enable_game_load_box
-            enable_shiny_detect = not enable_game_load_box
+            # enable_shiny_detect = not enable_game_load_box
+            # test(frame, roaming_box)
+            enable_roaming_box = not enable_roaming_box
         if key == ord("p"):
             entering_holding_pattern = True
         if key == ord("c") or key == ord("q"):
@@ -356,6 +492,7 @@ if __name__ == "__main__":
             game_series = hunt_strs[1]
             reset_data = reset_config[game_series]
             game_load_box = reset_data["load_box"]
+            roaming_box = reset_data["roaming_box"]
             f.close()
         print("Game Config Verified")
     except Exception as e:
@@ -370,6 +507,8 @@ if __name__ == "__main__":
             screenshot_folder = data["path"] + "/screenshots/"
             os.makedirs(screenshot_folder, exist_ok=True)
             resets = data["resets"]
+            is_roaming = data["roaming"]
+            steps = data["steps"]
             f.close()
 
         print("Hunt Config Verified")
@@ -377,3 +516,10 @@ if __name__ == "__main__":
         run_live(data, hunt, config)
     except Exception as e:
         print(f"Error with config or config path: {e}")
+
+
+# Cresselia start conditions: 
+# Facing Cresselia
+# On initial X press, starts on pokemon
+# Teleport pokemon second slot, only 1 HM/Out of battle thing or teleport is the first of them
+# Max Repel in first slot of other items
