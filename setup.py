@@ -59,16 +59,12 @@ def setup(hunt_name):
     configHelper.print_linebreak()
 
     if "controller_com_port" not in keys:
-        if "controller_upload_port" not in keys:
-            controller_ports = configureController.setup()
-        else:
-            controller_ports = configureController.setup(usb_port=data["controller_upload_port"])
+        controller_ports = configureController.setup()
         data["controller_com_port"] = controller_ports["COM"]
-        data["controller_upload_port"] = controller_ports["Upload"]
         configHelper.print_linebreak()
 
     else:
-        controller_ports = configureController.setup(uart_port=data["controller_com_port"], usb_port=data["controller_upload_port"])
+        controller_ports = configureController.setup(uart_port=data["controller_com_port"])
 
     print("Controller Serial Ports Selected Sucessfully!")
     configHelper.print_linebreak()
