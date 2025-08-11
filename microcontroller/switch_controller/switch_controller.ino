@@ -71,17 +71,17 @@ void setup() {
   delay(2000);
 }
 
-// void comboPress(uint8_t button, NSDirection_t direction, uint16_t hold_ms){
-//   Gamepad.press(button);
-//   Gamepad.dPad(direction);
-//   Gamepad.write();
+void comboPress(uint8_t button, NSDirection_t direction, uint16_t hold_ms){
+  Gamepad.press(button);
+  Gamepad.dPad(direction);
+  Gamepad.write();
 
-//   delay(hold_ms);
+  delay(hold_ms);
 
-//   Gamepad.release(button);
-//   Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
-//   Gamepad.write();
-// }
+  Gamepad.release(button);
+  Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+  Gamepad.write();
+}
 
 // void shayminScript(char step){
 // // Run from battle
@@ -130,6 +130,30 @@ void setup() {
 //   Serial0.write("End Shiny Check");
 //   delay(3750); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
 //   Serial0.write("End Scripted Input");
+// }
+
+// void arceus_reset(char step) {
+//   if (step == '3') {
+//           //after load
+//           //dpad up
+//           //wait 14
+//           Serial0.write("Ending Darkness Check");
+//           delay(1000); //Wait for game to fully load
+//           dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
+//           delay(13000);//cutscene
+//           buttonPress(NSButton_A, PRESS_TIME);
+//           // wait 10-12 (12 probably upper bound)
+//           Serial0.write("Starting Battle");
+//           delay(4500);
+//           Serial0.write("Starting Shiny Check");
+//           delay(3500);
+//           Serial0.write("Screenshotting");
+//           delay(6500);
+//           Serial0.write("Ending Shiny Check");
+//           delay(3000); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
+//           Serial0.write("Ending Scripted Input");
+//           //shiny check
+//         }
 // }
 
 void bdsp_reset(char step) {
@@ -189,18 +213,38 @@ void loop() {
           Serial0.write("Ending Darkness Check");
           delay(1000); //Wait for game to fully load
           dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
-          delay(13000);//cutscene
           buttonPress(NSButton_A, PRESS_TIME);
-          // wait 10-12 (12 probably upper bound)
-          Serial0.write("Starting Battle");
-          delay(4500);
-          Serial0.write("Starting Shiny Check");
-          delay(3500);
-          Serial0.write("Screenshotting");
-          delay(6500);
-          Serial0.write("Ending Shiny Check");
-          delay(3000); //could almost certainly be faster by a few seconds (maybe 2) (cut 1.25 already) (cant cut more i dont think because of occasional breelom friendship action)
-          Serial0.write("Ending Scripted Input");
+          delay(5500);//cutscene
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(250);
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(750);
+          buttonPress(NSButton_A, PRESS_TIME);
+          comboPress(NSButton_B, NSGAMEPAD_DPAD_DOWN, 3000);
+          delay(3000);
+          Serial0.write("Opening Menu");
+          //open menu
+          buttonPress(NSButton_X, PRESS_TIME);
+          delay(1000);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(1000);
+          dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
+          buttonPress(NSButton_A, PRESS_TIME);
+          delay(500);
+          dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
+          buttonPress(NSButton_A, PRESS_TIME);
+          Serial0.write("Teleporting");
+
+          delay(11000);
+          Serial0.write("Teleport Done");
+          comboPress(NSButton_B, NSGAMEPAD_DPAD_LEFT, 1000);
+          delay(250);
+          comboPress(NSButton_B, NSGAMEPAD_DPAD_DOWN, 3250);
+
+          delay(500);
+          buttonPress(NSButton_RightThrottle, PRESS_TIME); //not working
+          Serial0.write("Running Done");
           //shiny check
         }
         else if (step == 'A') { buttonPress(NSButton_A, PRESS_TIME); }

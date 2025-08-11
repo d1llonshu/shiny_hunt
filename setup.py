@@ -9,7 +9,7 @@ import os
 
 CONFIG_PATH = "config.json"
 RESET_CONFIG_PATH = "game_reset_config.json"
-HUNT_NAME_MANUAL = "arceus_bdsp"
+HUNT_NAME_MANUAL = "cresselia_bdsp"
 
 def setup(hunt_name):
     needs_updating = False
@@ -96,7 +96,8 @@ def setup(hunt_name):
     return data
 
 if __name__ == "__main__":
-    print("hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)")
+    # print("hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)")
     hunt = input("hunt_name (case sensitive): ")
     setup(hunt)
     # configureBoundingBox.setup(0)
+    # configureAudioDevice.testAudioDevice(2)

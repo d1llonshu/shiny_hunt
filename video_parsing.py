@@ -217,7 +217,12 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     enable_game_load_box = False
     enable_shiny_detect = False
     entering_holding_pattern = False
-    steps = ['0', '1', '2', '3']
+    #arceus steps = 3
+    #cresselia steps = 5
+    #3 - reset -> tp -> run down
+    #4 - loop for roaming
+    #5 - repel + run to grass + shiny check
+    steps = ['0', '1', '2', '3', '4', '5']
     current_step = 1
 
     while True:
@@ -242,18 +247,18 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                     enable_shiny_detect = True
                 elif ser_log == "Ending Shiny Check":
                     enable_shiny_detect = False
-                elif ser_log == "Screenshotting":
-                    should_screenshot = True
-                elif ser_log == "Ending Scripted Input":
-                    audio_path = shiny_folder + "shiny.wav"
-                    shiny_detected_audio = False
-                    if os.path.isfile(audio_path):
-                        shiny_detected_audio = True
-                        entering_holding_pattern = True
-                    if shiny_detected == False and shiny_detected_audio == False:
-                        resets += 1
-                        current_step = 1
-                        async_controller_sequence(ser, steps[current_step])
+                # elif ser_log == "Screenshotting":
+                #     should_screenshot = True
+                # elif ser_log == "Ending Scripted Input":
+                #     audio_path = shiny_folder + "shiny.wav"
+                #     shiny_detected_audio = False
+                #     if os.path.isfile(audio_path):
+                #         shiny_detected_audio = True
+                #         entering_holding_pattern = True
+                #     if shiny_detected == False and shiny_detected_audio == False:
+                #         resets += 1
+                #         current_step = 1
+                #         async_controller_sequence(ser, steps[current_step])
                         
                 #for resets that need the game to restart
                 elif ser_log == "Starting Darkness Check":
