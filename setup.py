@@ -75,11 +75,24 @@ def setup(hunt_name):
 
     if "resets" not in keys:
         data["resets"] = 0
+        needs_updating = True
 
     if "path" not in keys or os.path.isfile(data["path"]):
         os.makedirs(f"hunt/{hunt_name}", exist_ok=True)
         data["path"] = f"hunt/{hunt_name}"
         os.makedirs(f"hunt/{hunt_name}/screenshots", exist_ok=True)
+        needs_updating = True
+
+    if "roaming" not in keys:
+        isRoaming = input("Roaming? (Y/N) ")
+        while isRoaming.lower() not in ['y', 'n', 'yes', 'no']:
+            isRoaming = input("Roaming? (Please use Y/N or Yes/No)")
+
+        if isRoaming == 'y' or isRoaming == 'yes':
+            data["roaming"] = True
+        else:
+            data["roaming"] = False
+        needs_updating = True
 
     # Rewrite config if needed
     if needs_updating or controller_ports["updated"]:
@@ -89,6 +102,8 @@ def setup(hunt_name):
             json.dump(config, f, indent=2)
         f.close()
         configHelper.print_linebreak()
+    else:
+        print("No changes detected.")
 
     print(f"Config for {hunt_name} is ready!")
     configHelper.print_linebreak()
@@ -96,8 +111,12 @@ def setup(hunt_name):
     return data
 
 if __name__ == "__main__":
-    # print("hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)")
-    hunt = input("hunt_name (case sensitive): ")
-    setup(hunt)
-    # configureBoundingBox.setup(0)
-    # configureAudioDevice.testAudioDevice(2)
+    testing = True
+    if testing:
+        # configureBoundingBox.setup(0)
+        # configureAudioDevice.testAudioDevice(2)
+        setup("cresselia_bdsp")
+    else:
+        print("hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)")
+        hunt = input("hunt_name (case sensitive): ")
+        setup(hunt)
