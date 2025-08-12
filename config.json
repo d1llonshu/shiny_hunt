@@ -36,7 +36,7 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 32,
+    "resets": 70,
     "path": "hunt/cresselia_bdsp",
     "shiny_bounding_box": [
       1110,

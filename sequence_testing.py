@@ -6,7 +6,7 @@ import json
 
 from setup import setup, CONFIG_PATH, RESET_CONFIG_PATH, HUNT_NAME_MANUAL
 from audio_parsing import listen
-from controller import *
+from sequence_testing_controller import *
 
 # --- Configuration ---
 CAMERA_INDEX = 0  # change if you have multiple cameras
@@ -38,10 +38,6 @@ shiny_folder = ""
 steps = 3
 game_load_box = [0,0,0,0]
 
-roaming_box = [0,0,0,0]
-is_roaming = False
-roaming_detected = False
-roaming_battle = False
 
 #For testing how many frames a shiny is eligible to be detected
 frame_count = 0
@@ -163,31 +159,7 @@ def process_frame(frame, roi_rect):
         cv2.imwrite(fname, frame)
     return trigger, display
 
-def roaming_battle_check(frame, roi_rect):
-    global roaming_battle
-
-    x, y, w, h = roi_rect
-    h_frame, w_frame = frame.shape[:2]
-    # clamp ROI to frame bounds
-    #      1120,450,590,440
-    x = max(0, min(x, w_frame - 1))
-    y = max(0, min(y, h_frame - 1))
-    w = max(1, min(w, w_frame - x))
-    h = max(1, min(h, h_frame - y))
-
-    roi = frame[y:y+h, x:x+w]
-
-    display = frame.copy()
-    cv2.rectangle(display, (x,y), (x+w, y+h), (255, 0, 0), 2)
-    if np.all(roi == 255):
-        roaming_battle = True
-
-    # cv2.putText(display, f"Roaming Battle: {roaming_battle}", (10, 90),
-    #         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
-    return display
-
 def darkness_check(frame, roi_rect):
-    
     x, y, w, h = roi_rect
     h_frame, w_frame = frame.shape[:2]
     # clamp ROI to frame bounds
@@ -214,39 +186,6 @@ def darkness_check(frame, roi_rect):
     # cv2.putText(frame, f"Resets: {resets}", (5,20),
     #         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
     return darkness, display
-
-def poketch_check(frame, roi_rect):
-
-    global roaming_detected
-    
-    temp_roam = False
-    x, y, w, h = roi_rect
-    h_frame, w_frame = frame.shape[:2]
-    # clamp ROI to frame bounds
-    #      1120,450,590,440
-    x = max(0, min(x, w_frame - 1))
-    y = max(0, min(y, h_frame - 1))
-    w = max(1, min(w, w_frame - x))
-    h = max(1, min(h, h_frame - y))
-
-    roi = frame[y:y+h, x:x+w]
-    formula_threshold = 40.0 #be below it to be classified as roaming detected (this is a darkness detection so to speak)
-    
-    # if roi != should_equal:
-    #     darkness = False
-
-    # Visualization only ROI content with circles and bounding box
-    #      1120,450,590,440
-    # draw bounding box
-    display = frame.copy()
-    cv2.rectangle(display, (x,y), (x+w, y+h), (255, 0, 0), 2)
-    for pixel in roi[0]:
-        b, g, r = pixel
-        formula = 0.2126*r +0.7152*g+0.0722*b
-        if formula < formula_threshold:
-            roaming_detected = True
-
-    return display
 
 
 def run_live(settings, hunt_name, all_settings, testing=None):
@@ -287,6 +226,8 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     enable_roaming_box = False
     enable_roaming_battle_box = False
     entering_holding_pattern = False
+
+    serial_enabled = True
     #arceus steps = 3
     #cresselia steps = 5
     #3 - reset -> tp -> run down
@@ -311,73 +252,32 @@ def run_live(settings, hunt_name, all_settings, testing=None):
         # If shiny has been detected audio or visual, we don't want any potential for input
         if not entering_holding_pattern:
             #Tracks most recent serial output from microcontroller, which dictates behavior.
-            ser_log = get_latest_command()
-            if ser_log is not None and ser_log != last_seen:
+            if serial_enabled:
+                ser_log = get_latest_command()
+                if ser_log is not None and ser_log != last_seen:
 
-                if ser_log == "Starting Shiny Check":
-                    enable_shiny_detect = True
-                elif ser_log == "Ending Shiny Check":
-                    enable_shiny_detect = False
-                if ser_log == "Starting Battle":
-                    enable_roaming_battle_box = False
-                elif ser_log == "Screenshotting":
-                    should_screenshot = True
-                elif ser_log == "Ending Scripted Input":
-                    audio_path = shiny_folder + "shiny.wav"
-                    shiny_detected_audio = False
-                    if os.path.isfile(audio_path):
-                        shiny_detected_audio = True
-                        entering_holding_pattern = True
-                    if shiny_detected == False and shiny_detected_audio == False:
-                        resets += 1
-                        current_step = 1
-                        async_controller_sequence(ser, str(current_step))
-                        
-                #for resets that need the game to restart
-                elif ser_log == "Starting Darkness Check":
-                    enable_game_load_box = True
-                
-                #for roaming encounters
-                elif ser_log == "Starting Roaming Check":
-                    enable_roaming_box = True
-                elif ser_log == "Ending Roaming Check":
-                    if roaming_detected:
-                        roaming_detected = False
-                        enable_roaming_box = False
-                        current_step += 1
-                        async_controller_sequence(ser, str(current_step))
-                    else:
-                        # stay on the same step until we hit roaming
-                        enable_roaming_box = False #disable the box to avoid false positive of roaming being in spot when we arent
-                        async_controller_sequence(ser, str(current_step))
-
-                elif ser_log == "Ending Initial Roaming Check":
-                    if roaming_detected:
-                        roaming_detected = False
-                        enable_roaming_box = False
-                        current_step += 2 #skip the loop step
-                        async_controller_sequence(ser, str(current_step))
-                    else:
-                        current_step += 1 #enter loop step
-                        enable_roaming_box = False
-                        async_controller_sequence(ser, str(current_step))
-                elif ser_log == "In Grass":
-                    current_step += 1
-                    enable_roaming_battle_box = True
-                    async_controller_sequence(ser, str(current_step))
-                
-                elif ser_log == "Done Moving":
-                    if roaming_battle == False:
-                        async_controller_sequence(ser, str(current_step))
-                    else:
-                        enable_roaming_battle_box = False
-                        roaming_battle = False
-                        current_step += 1
-                        async_controller_sequence(ser, str(current_step))
-                last_seen = ser_log
-            # TESTING
-            if os.path.isfile(shiny_folder + "shiny.wav"):
-                entering_holding_pattern = True
+                    if ser_log == "Starting Shiny Check":
+                        enable_shiny_detect = True
+                    elif ser_log == "Ending Shiny Check":
+                        enable_shiny_detect = False
+                    elif ser_log == "Screenshotting":
+                        should_screenshot = True
+                    elif ser_log == "Ending Scripted Input":
+                        audio_path = shiny_folder + "shiny.wav"
+                        shiny_detected_audio = False
+                        if os.path.isfile(audio_path):
+                            shiny_detected_audio = True
+                            entering_holding_pattern = True
+                        if shiny_detected == False and shiny_detected_audio == False:
+                            resets += 1
+                            current_step = 1
+                            async_controller_sequence(ser, str(current_step))
+                            
+                    #for resets that need the game to restart
+                    elif ser_log == "Starting Darkness Check":
+                        enable_game_load_box = True
+                    
+                    last_seen = ser_log
             
 
             #Display is different depending on if the shiny detection is enabled
@@ -393,24 +293,21 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                     enable_game_load_box = False
                     current_step += 1
                     async_controller_sequence(ser, str(current_step))
-            elif enable_roaming_box:
-                display_frame = poketch_check(frame, roaming_box)
-            elif enable_roaming_battle_box:
-                display_frame = roaming_battle_check(frame, roaming_box)
-                # if should_screenshot:
-                #     fname = os.path.join(screenshot_folder, f"reset_{resets}.png")
-                #     cv2.imwrite(fname, display_frame)
             else:
                 display_frame = frame
 
-            cv2.putText(display_frame, f"Resets: {resets}", row_one, 
+            cv2.putText(frame, f"Serial Enabled: {serial_enabled}", row_one, 
                         text_font, text_font_scale, green, text_thickness, cv2.LINE_AA)
-            cv2.putText(display_frame, last_seen, row_two, 
+            if serial_enabled:
+                cv2.putText(display_frame, last_seen, row_two, 
                         text_font, text_font_scale, (0, 0, 255), text_thickness, cv2.LINE_AA)
+
             cv2.imshow(window_name, display_frame)
 
             if shiny_detected == True:
                 entering_holding_pattern = True
+
+            
 
         #If shiny has been found, enter holding pattern
         else:
@@ -421,61 +318,66 @@ def run_live(settings, hunt_name, all_settings, testing=None):
             cv2.imshow(window_name, frame)
 
         key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            with open(CONFIG_PATH, "w") as f:
-                all_settings[hunt]["resets"] = resets
-                json.dump(all_settings, f, indent=2)
-                f.close()
-            break
 
+        if serial_enabled:
         #Inputs when window is selected, S to Start.
-        if key == ord("s"):
-            async_controller_sequence(ser, '1')
-        if key == ord("1"):
-            async_controller_sequence(ser, '1')
-        if key == ord("2"):
-            async_controller_sequence(ser, '2')
-            current_step = 2
-        if key == ord("3"):
-            async_controller_sequence(ser, '3')
-            current_step = 3
-        if key == ord("4"):
-            async_controller_sequence(ser, "4")       
-            current_step = 4 
-        if key == ord("5"):
-            async_controller_sequence(ser, "5")
-            current_step = 5
-        if key == ord("6"):
-            async_controller_sequence(ser, "6")
-            current_step = 6
-        
-        if key == ord("a"):
-            async_controller_sequence(ser, 'A')
-        if key == ord("b"):
-            async_controller_sequence(ser, 'B')
-        if key == ord("x"):
-            async_controller_sequence(ser, 'X')
-        if key == ord("y"):
-            async_controller_sequence(ser, 'Y')
+            if key == ord("s"):
+                async_controller_sequence(ser, '1')
+            if key == ord("1"):
+                async_controller_sequence(ser, '1')
+            if key == ord("2"):
+                async_controller_sequence(ser, '2')
+                current_step = 2
+            if key == ord("3"):
+                async_controller_sequence(ser, '3')
+                current_step = 3
+            if key == ord("4"):
+                async_controller_sequence(ser, "4")       
+                current_step = 4 
+            if key == ord("5"):
+                async_controller_sequence(ser, "5")
+                current_step = 5
+            if key == ord("6"):
+                async_controller_sequence(ser, "6")
+                current_step = 6
+            
+            if key == ord("a"):
+                async_controller_sequence(ser, 'A')
+            if key == ord("b"):
+                async_controller_sequence(ser, 'B')
+            if key == ord("x"):
+                async_controller_sequence(ser, 'X')
+            if key == ord("y"):
+                async_controller_sequence(ser, 'Y')
 
-        if key == ord("u"):
-            async_controller_sequence(ser, 'U')
-        if key == ord("d"):
-            async_controller_sequence(ser, 'D')
-        if key == ord("l"):
-            async_controller_sequence(ser, 'L')
-        if key == ord("r"):
-            async_controller_sequence(ser, 'R')
+            if key == ord("u"):
+                async_controller_sequence(ser, 'U')
+            if key == ord("d"):
+                async_controller_sequence(ser, 'D')
+            if key == ord("l"):
+                async_controller_sequence(ser, 'L')
+            if key == ord("r"):
+                async_controller_sequence(ser, 'R')
+            if key == ord("z"):
+                async_controller_sequence(ser, 'Z')
         
-        if key == ord("z"):
-            async_controller_sequence(ser, 'Z')
+        if key == ord("q"):
+            if serial_enabled:
+                close_serial(ser)
+                serial_enabled = False
+                stop_serial_reader_func()
+            else:
+                ser = init_serial(settings["controller_com_port"])
+                serial_enabled = True
+                start_serial_reader(ser)
+
         if key == ord("t"):
             # enable_shiny_detect = not enable_game_load_box
             # test(frame, roaming_box)
             enable_roaming_box = not enable_roaming_box
         if key == ord("p"):
             entering_holding_pattern = True
-        if key == ord("c") or key == ord("q"):
+        if key == ord("c"):
             with open(CONFIG_PATH, "w") as f:
                 all_settings[hunt]["resets"] = resets
                 json.dump(all_settings, f, indent=2)
@@ -499,7 +401,6 @@ if __name__ == "__main__":
             game_series = hunt_strs[1]
             reset_data = reset_config[game_series]
             game_load_box = reset_data["load_box"]
-            roaming_box = reset_data["roaming_box"]
             f.close()
         print("Game Config Verified")
     except Exception as e:
@@ -514,8 +415,8 @@ if __name__ == "__main__":
             screenshot_folder = data["path"] + "/screenshots/"
             os.makedirs(screenshot_folder, exist_ok=True)
             resets = data["resets"]
-            is_roaming = data["roaming"]
             steps = data["steps"]
+            print(os.path.join(screenshot_folder, f"reset_{resets}.png"))
             f.close()
 
         print("Hunt Config Verified")

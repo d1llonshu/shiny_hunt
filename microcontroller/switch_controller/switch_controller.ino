@@ -4,7 +4,22 @@ NSGamepad Gamepad;
 constexpr long COM_BAUD = 115200;
 
 constexpr uint8_t NUM_INPUTS = 14;
+
+//in MS
 constexpr uint16_t PRESS_TIME = 100;
+constexpr uint16_t TEST_PRESS_TIME = 50;
+constexpr uint16_t NO_MENU_DELAY = 100;
+
+//16 bit (0-255)
+constexpr uint8_t STICK_MIN = 0;
+constexpr uint8_t STICK_MAX = 255;
+constexpr uint8_t STICK_NEUTRAL = 128;
+
+//{x,y}
+constexpr uint8_t STICK_LEFT[2] = {STICK_MIN, STICK_NEUTRAL};
+constexpr uint8_t STICK_RIGHT[2] = {STICK_MAX, STICK_NEUTRAL};
+constexpr uint8_t STICK_UP[2] = {STICK_NEUTRAL, STICK_MIN};
+constexpr uint8_t STICK_DOWN[2] = {STICK_NEUTRAL, STICK_MAX};
 
 
 // static const char* valid_inputs[NUM_INPUTS] = {
@@ -48,6 +63,8 @@ void buttonPress(uint8_t button, uint16_t hold_ms){
 
   Gamepad.release(button);
   Gamepad.write();
+
+  // delay(NO_MENU_DELAY);
 }
 
 void dPadPress(NSDirection_t direction, uint16_t hold_ms){
@@ -57,17 +74,48 @@ void dPadPress(NSDirection_t direction, uint16_t hold_ms){
 
   Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
   Gamepad.write();
+
+  // delay(NO_MENU_DELAY);
 }
 
 //x and y rest at 128
-void leftStickPress(uint8_t x, uint8_t y, uint16_t hold_ms){
-  Gamepad.leftXAxis(x);
-  Gamepad.leftYAxis(y);
-
+//array len not enforced
+void leftStickPress(const uint8_t arr[2], uint16_t hold_ms){
+  Gamepad.leftXAxis(arr[0]);
+  Gamepad.leftYAxis(arr[1]);
+  Gamepad.write();
   delay(hold_ms);
 
   Gamepad.leftXAxis(128);
   Gamepad.leftYAxis(128);
+  Gamepad.write();
+
+  // delay(NO_MENU_DELAY);
+}
+void rightStickPress(const uint8_t arr[2], uint16_t hold_ms){
+  Gamepad.rightXAxis(arr[0]);
+  Gamepad.rightYAxis(arr[1]);
+  Gamepad.write();
+  delay(hold_ms);
+
+  Gamepad.rightXAxis(128);
+  Gamepad.rightYAxis(128);
+  Gamepad.write();
+
+  // delay(NO_MENU_DELAY);
+}
+
+void comboPress(uint8_t button, NSDirection_t direction, uint16_t hold_ms){
+  Gamepad.press(button);
+  Gamepad.dPad(direction);
+  Gamepad.write();
+  delay(hold_ms);
+
+  Gamepad.release(button);
+  Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
+  Gamepad.write();
+
+  // delay(NO_MENU_DELAY);
 }
 
 void setup() {
@@ -80,19 +128,10 @@ void setup() {
 
   buttonPress(NSButton_B, PRESS_TIME);
   delay(2000);
+  
 }
 
-void comboPress(uint8_t button, NSDirection_t direction, uint16_t hold_ms){
-  Gamepad.press(button);
-  Gamepad.dPad(direction);
-  Gamepad.write();
 
-  delay(hold_ms);
-
-  Gamepad.release(button);
-  Gamepad.dPad(NSGAMEPAD_DPAD_CENTERED);
-  Gamepad.write();
-}
 
 // void shayminScript(char step){
 // // Run from battle
@@ -325,14 +364,17 @@ void loop() {
           delay(500);
         }
         else if (step == '6'){
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(150);
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(150);
-          dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME);
-          delay(150);
-          dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME);
-          delay(150);
+          // dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          // delay(150);
+          // dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          // delay(150);
+          // dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME);
+          // delay(150);
+          // dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME);
+          // delay(150);
+          leftStickPress(STICK_RIGHT, 375);
+          delay(NO_MENU_DELAY);
+          leftStickPress(STICK_LEFT, 375);
           Serial0.write("Done Moving");
         }
         else if (step == '7'){
@@ -355,6 +397,32 @@ void loop() {
         else if (step == 'D') { dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME); }
         else if (step == 'L') { dPadPress(NSGAMEPAD_DPAD_LEFT, PRESS_TIME); }
         else if (step == 'R') { dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME); }
+        else if (step == 'Z') {
+          // buttonPress(NSButton_X, PRESS_TIME);
+          // //Wait for menu to open, should be on pokemon because of teleport
+          // delay(1000);
+          // dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          // buttonPress(NSButton_A, PRESS_TIME);
+          // //wait for bag to open
+          // delay(1150);
+          delay(1000);
+          Serial0.write("Updated");
+          leftStickPress(STICK_LEFT, 750);
+          delay(NO_MENU_DELAY);
+          leftStickPress(STICK_DOWN, 3250);
+
+          Serial0.write("menu test");
+          buttonPress(NSButton_X, PRESS_TIME);
+          //Wait for menu to open, should be on pokemon because of teleport
+          delay(1000);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
+          buttonPress(NSButton_A, PRESS_TIME);
+          //wait for bag to open
+          delay(1150);
+          rightStickPress(STICK_LEFT, 750);
+          //Move to other items pocket
+
+        }
         // if (cmd == 'A') { buttonPress(NSButton_A, PRESS_TIME); }
         // else if (cmd == 'B') { buttonPress(NSButton_B, PRESS_TIME); }
         // else if (cmd == 'X') { buttonPress(NSButton_X, PRESS_TIME); }
