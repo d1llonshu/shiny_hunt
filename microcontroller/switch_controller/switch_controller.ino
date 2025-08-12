@@ -59,6 +59,17 @@ void dPadPress(NSDirection_t direction, uint16_t hold_ms){
   Gamepad.write();
 }
 
+//x and y rest at 128
+void leftStickPress(uint8_t x, uint8_t y, uint16_t hold_ms){
+  Gamepad.leftXAxis(x);
+  Gamepad.leftYAxis(y);
+
+  delay(hold_ms);
+
+  Gamepad.leftXAxis(128);
+  Gamepad.leftYAxis(128);
+}
+
 void setup() {
   Gamepad.begin();
   USB.begin();
@@ -245,9 +256,9 @@ void loop() {
           delay(500);
           buttonPress(NSButton_RightTrigger, 250); //not working
           Serial0.write("Starting Roaming Check");
-          delay(1500);
+          delay(1250);
           Serial0.write("Ending Initial Roaming Check");
-          delay(500);
+          delay(250);
           
           //shiny check
         }
@@ -256,14 +267,14 @@ void loop() {
           // comboPress(NSButton_B, NSGAMEPAD_DPAD_UP, 250);
           dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
           dPadPress(NSGAMEPAD_DPAD_UP, PRESS_TIME);
-          delay(250);
+          delay(200);
           dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
           dPadPress(NSGAMEPAD_DPAD_DOWN, PRESS_TIME);
           // delay(250);
           Serial0.write("Starting Roaming Check");
-          delay(1250);
+          delay(1100);
           Serial0.write("Ending Roaming Check");
-          delay(250);
+          delay(150);
         }
         else if (step == '5'){
           Serial0.write("Applying Repel");
@@ -273,27 +284,25 @@ void loop() {
           dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
           buttonPress(NSButton_A, PRESS_TIME);
           //wait for bag to open
-          delay(750);
+          delay(1150);
           //Move to other items pocket
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(250);
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(250);
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(250);
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(250);
-          dPadPress(NSGAMEPAD_DPAD_RIGHT, PRESS_TIME);
-          delay(250);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, 150);
+          delay(300);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, 150);
+          delay(300);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, 150);
+          delay(300);
+          dPadPress(NSGAMEPAD_DPAD_RIGHT, 150);
+          delay(300);
           //use repel, assuming it is in the first slot
           buttonPress(NSButton_A, PRESS_TIME);
-          delay(250);
+          delay(300);
           buttonPress(NSButton_A, PRESS_TIME);
-          delay(250);
+          delay(300);
           buttonPress(NSButton_A, PRESS_TIME);
-          delay(250);
+          delay(300);
           buttonPress(NSButton_B, PRESS_TIME);
-          delay(750);
+          delay(1000);
           buttonPress(NSButton_B, PRESS_TIME);
           delay(1000);
           buttonPress(NSButton_B, PRESS_TIME);
@@ -329,11 +338,11 @@ void loop() {
         else if (step == '7'){
           Serial0.write("Starting Battle");
           delay(1500);
-          // Serial0.write("Starting Shiny Check");
-          delay(1500);
+          Serial0.write("Starting Shiny Check");
+          delay(2000);
           Serial0.write("Screenshotting");
-          delay(1500);
-          // Serial0.write("Ending Shiny Check");
+          delay(2000);
+          Serial0.write("Ending Shiny Check");
           delay(1500); 
           Serial0.write("Ending Scripted Input");
         }

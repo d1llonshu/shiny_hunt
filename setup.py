@@ -114,8 +114,8 @@ def setup(hunt_name):
 if __name__ == "__main__":
     testing = True
     if testing:
-        configureBoundingBox.setup(0)
-        # configureAudioDevice.testAudioDevice(2)
+        # configureBoundingBox.setup(0)
+        configureAudioDevice.testAudioDevice(2)
         # setup("cresselia_bdsp")
     else:
         print("hunt_name format -> pkmnName_gameName (i.e shaymin_bdsp, arceus_bdsp, registeel_swsh)")

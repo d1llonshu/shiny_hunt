@@ -121,6 +121,9 @@ def process_frame(frame, roi_rect):
             trigger = True
         elif sparkle_cluster:
             trigger = True
+        
+        #MUST BE REMOVED (TURNING OFF VISUAL DETECTION FOR CRESSELIA FIGHT)
+        trigger = False
 
     if trigger:
         cooldown_frames = COOLDOWN_PERIOD
@@ -174,19 +177,13 @@ def roaming_battle_check(frame, roi_rect):
 
     roi = frame[y:y+h, x:x+w]
 
-    # if roi != should_equal:
-    #     darkness = False
-
-    # Visualization only ROI content with circles and bounding box
-    #      1120,450,590,440
-    # draw bounding box
     display = frame.copy()
     cv2.rectangle(display, (x,y), (x+w, y+h), (255, 0, 0), 2)
     if np.all(roi == 255):
         roaming_battle = True
 
-    cv2.putText(display, f"Roaming Battle: {roaming_battle}", (10, 90),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+    # cv2.putText(display, f"Roaming Battle: {roaming_battle}", (10, 90),
+    #         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
     return display
 
 def darkness_check(frame, roi_rect):
@@ -248,15 +245,7 @@ def poketch_check(frame, roi_rect):
         formula = 0.2126*r +0.7152*g+0.0722*b
         if formula < formula_threshold:
             roaming_detected = True
-            temp_roam = True
-        
-    if temp_roam:
-        cv2.putText(display, f"Roaming", (10, 90),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
-    else:
-        
-        cv2.putText(display, f"None", (10, 90),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255), 2)
+
     return display
 
 
@@ -269,7 +258,7 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     
     global frame_count
 
-    global roaming_detected, roaming_battle
+    global roaming_detected, roaming_battle, screenshot_folder
 
     #openCV display related values
     text_font = cv2.FONT_HERSHEY_SIMPLEX
@@ -324,13 +313,15 @@ def run_live(settings, hunt_name, all_settings, testing=None):
             #Tracks most recent serial output from microcontroller, which dictates behavior.
             ser_log = get_latest_command()
             if ser_log is not None and ser_log != last_seen:
-                if ser_log == "Screenshotting":
-                    should_screenshot = True
-                # elif ser_log == "Starting Shiny Check":
-                #     enable_shiny_detect = True
-                # elif ser_log == "Ending Shiny Check":
-                #     enable_shiny_detect = False
 
+                if ser_log == "Starting Shiny Check":
+                    enable_shiny_detect = True
+                elif ser_log == "Ending Shiny Check":
+                    enable_shiny_detect = False
+                if ser_log == "Starting Battle":
+                    enable_roaming_battle_box = False
+                elif ser_log == "Screenshotting":
+                    should_screenshot = True
                 elif ser_log == "Ending Scripted Input":
                     audio_path = shiny_folder + "shiny.wav"
                     shiny_detected_audio = False
@@ -406,6 +397,9 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                 display_frame = poketch_check(frame, roaming_box)
             elif enable_roaming_battle_box:
                 display_frame = roaming_battle_check(frame, roaming_box)
+                # if should_screenshot:
+                #     fname = os.path.join(screenshot_folder, f"reset_{resets}.png")
+                #     cv2.imwrite(fname, display_frame)
             else:
                 display_frame = frame
 
@@ -509,6 +503,7 @@ if __name__ == "__main__":
             resets = data["resets"]
             is_roaming = data["roaming"]
             steps = data["steps"]
+            print(os.path.join(screenshot_folder, f"reset_{resets}.png"))
             f.close()
 
         print("Hunt Config Verified")
