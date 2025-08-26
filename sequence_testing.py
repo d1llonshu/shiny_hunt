@@ -360,6 +360,10 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                 async_controller_sequence(ser, 'R')
             if key == ord("z"):
                 async_controller_sequence(ser, 'Z')
+            if key == ord("9"):
+                async_controller_sequence(ser, '9')
+            if key == ord("0"):
+                async_controller_sequence(ser, '0')
         
         if key == ord("q"):
             if serial_enabled:
@@ -372,9 +376,8 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                 start_serial_reader(ser)
 
         if key == ord("t"):
-            # enable_shiny_detect = not enable_game_load_box
+            enable_shiny_detect = not enable_shiny_detect
             # test(frame, roaming_box)
-            enable_roaming_box = not enable_roaming_box
         if key == ord("p"):
             entering_holding_pattern = True
         if key == ord("c"):
@@ -416,7 +419,6 @@ if __name__ == "__main__":
             os.makedirs(screenshot_folder, exist_ok=True)
             resets = data["resets"]
             steps = data["steps"]
-            print(os.path.join(screenshot_folder, f"reset_{resets}.png"))
             f.close()
 
         print("Hunt Config Verified")

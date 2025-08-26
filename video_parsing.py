@@ -287,11 +287,6 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     enable_roaming_box = False
     enable_roaming_battle_box = False
     entering_holding_pattern = False
-    #arceus steps = 3
-    #cresselia steps = 5
-    #3 - reset -> tp -> run down
-    #4 - loop for roaming
-    #5 - repel + run to grass + shiny check
     global steps
     current_step = 1
 
@@ -313,7 +308,6 @@ def run_live(settings, hunt_name, all_settings, testing=None):
             #Tracks most recent serial output from microcontroller, which dictates behavior.
             ser_log = get_latest_command()
             if ser_log is not None and ser_log != last_seen:
-
                 if ser_log == "Starting Shiny Check":
                     enable_shiny_detect = True
                 elif ser_log == "Ending Shiny Check":
@@ -337,43 +331,7 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                 elif ser_log == "Starting Darkness Check":
                     enable_game_load_box = True
                 
-                #for roaming encounters
-                elif ser_log == "Starting Roaming Check":
-                    enable_roaming_box = True
-                elif ser_log == "Ending Roaming Check":
-                    if roaming_detected:
-                        roaming_detected = False
-                        enable_roaming_box = False
-                        current_step += 1
-                        async_controller_sequence(ser, str(current_step))
-                    else:
-                        # stay on the same step until we hit roaming
-                        enable_roaming_box = False #disable the box to avoid false positive of roaming being in spot when we arent
-                        async_controller_sequence(ser, str(current_step))
-
-                elif ser_log == "Ending Initial Roaming Check":
-                    if roaming_detected:
-                        roaming_detected = False
-                        enable_roaming_box = False
-                        current_step += 2 #skip the loop step
-                        async_controller_sequence(ser, str(current_step))
-                    else:
-                        current_step += 1 #enter loop step
-                        enable_roaming_box = False
-                        async_controller_sequence(ser, str(current_step))
-                elif ser_log == "In Grass":
-                    current_step += 1
-                    enable_roaming_battle_box = True
-                    async_controller_sequence(ser, str(current_step))
-                
-                elif ser_log == "Done Moving":
-                    if roaming_battle == False:
-                        async_controller_sequence(ser, str(current_step))
-                    else:
-                        enable_roaming_battle_box = False
-                        roaming_battle = False
-                        current_step += 1
-                        async_controller_sequence(ser, str(current_step))
+              
                 last_seen = ser_log
             # TESTING
             if os.path.isfile(shiny_folder + "shiny.wav"):
@@ -470,9 +428,8 @@ def run_live(settings, hunt_name, all_settings, testing=None):
         if key == ord("z"):
             async_controller_sequence(ser, 'Z')
         if key == ord("t"):
-            # enable_shiny_detect = not enable_game_load_box
+            enable_shiny_detect = not enable_shiny_detect
             # test(frame, roaming_box)
-            enable_roaming_box = not enable_roaming_box
         if key == ord("p"):
             entering_holding_pattern = True
         if key == ord("c") or key == ord("q"):

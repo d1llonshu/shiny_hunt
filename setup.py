@@ -9,7 +9,7 @@ import os
 
 CONFIG_PATH = "config.json"
 RESET_CONFIG_PATH = "game_reset_config.json"
-HUNT_NAME_MANUAL = "cresselia_bdsp"
+HUNT_NAME_MANUAL = "zapdos_bdsp"
 
 def setup(hunt_name):
     needs_updating = False
@@ -112,7 +112,7 @@ def setup(hunt_name):
     return data
 
 if __name__ == "__main__":
-    testing = True
+    testing = False
     if testing:
         # configureBoundingBox.setup(0)
         configureAudioDevice.testAudioDevice(2)

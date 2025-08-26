@@ -36,7 +36,7 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 70,
+    "resets": 98,
     "path": "hunt/cresselia_bdsp",
     "shiny_bounding_box": [
       1110,
@@ -46,5 +46,37 @@
     ],
     "roaming": true,
     "steps": 7
+  },
+  "darkrai_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 450,
+    "path": "hunt/darkrai_bdsp",
+    "shiny_bounding_box": [
+      1110,
+      440,
+      500,
+      510
+    ],
+    "roaming": false,
+    "steps": 3
+  },
+  "zapdos_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 23,
+    "path": "hunt/zapdos_bdsp",
+    "shiny_bounding_box": [
+      1110,
+      440,
+      500,
+      510
+    ],
+    "roaming": false,
+    "steps": 3
   }
 }
