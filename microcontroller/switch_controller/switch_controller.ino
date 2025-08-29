@@ -346,15 +346,17 @@ void setup() {
 //   }
 // }
 void bdsp_premier_balls() {
+  //should be at pokemart hovering the poke ball purchase option
   Serial0.write("Buying 50 Premier balls");
   int count = 0;
 
   while (count < 50)
   {
-    Serial0.write(count);
+    Serial0.write("Buying ball ");
+    Serial0.write(String(count).c_str());
     delay(1000); //Wait 
 
-    delay(1000); //Wait for game to fully load
+    delay(1000); //Wait more
     buttonPress(NSButton_A, PRESS_TIME); 
     delay(300);
     dPadPress(NSGAMEPAD_DPAD_UP, 1750);
@@ -372,6 +374,7 @@ void bdsp_premier_balls() {
     buttonPress(NSButton_A, PRESS_TIME); 
     count = count + 1;
   }
+  Serial0.write("Done");
 }
 
 void bdsp_reset(char step) {

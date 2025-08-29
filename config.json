@@ -68,8 +68,24 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 23,
+    "resets": 1303,
     "path": "hunt/zapdos_bdsp",
+    "shiny_bounding_box": [
+      1110,
+      440,
+      500,
+      510
+    ],
+    "roaming": false,
+    "steps": 3
+  },
+  "moltres_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 0,
+    "path": "hunt/moltres_bdsp",
     "shiny_bounding_box": [
       1110,
       440,
