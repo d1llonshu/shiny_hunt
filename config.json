@@ -84,13 +84,13 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 0,
+    "resets": 3,
     "path": "hunt/moltres_bdsp",
     "shiny_bounding_box": [
-      1110,
-      440,
-      500,
-      510
+      1000,
+      0,
+      600,
+      600
     ],
     "roaming": false,
     "steps": 3
