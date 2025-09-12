@@ -464,8 +464,8 @@ void loop() {
       bdsp_reset('3');
     }
     else if (step == '4') {
-      // bdsp_rasmanas_park(6500);
-      bdsp_rasmanas_park(6000);//rayquaza
+      bdsp_rasmanas_park(6500);
+      // bdsp_rasmanas_park(6000);
     }
     else if (step == '9'){
 

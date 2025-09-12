@@ -20,7 +20,7 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 BRIGHTNESS_PERCENTILE = 97
 BLOB_MIN_AREA = 500
 BLOB_MAX_AREA = 5000
-SPARKLE_COUNT_THRESHOLD = 5
+SPARKLE_COUNT_THRESHOLD = 6
 WINDOW_SIZE = 5
 FLASH_DECAY = 0.9
 BRIGHTNESS_THRESHOLD = 40
@@ -125,7 +125,7 @@ def process_frame(frame, roi_rect):
             trigger = True
         
         #MUST BE REMOVED (TURNING OFF VISUAL DETECTION FOR CRESSELIA FIGHT)
-        # trigger = False
+        trigger = False
 
     if trigger:
         cooldown_frames = COOLDOWN_PERIOD
@@ -537,10 +537,3 @@ if __name__ == "__main__":
         run_live(data, hunt, config)
     except Exception as e:
         print(f"Error with config or config path: {e}")
-
-
-# Cresselia start conditions: 
-# Facing Cresselia
-# On initial X press, starts on pokemon
-# Teleport pokemon second slot, only 1 HM/Out of battle thing or teleport is the first of them
-# Max Repel in first slot of other items
