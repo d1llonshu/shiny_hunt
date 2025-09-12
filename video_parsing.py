@@ -125,7 +125,7 @@ def process_frame(frame, roi_rect):
             trigger = True
         
         #MUST BE REMOVED (TURNING OFF VISUAL DETECTION FOR CRESSELIA FIGHT)
-        trigger = False
+        # trigger = False
 
     if trigger:
         cooldown_frames = COOLDOWN_PERIOD

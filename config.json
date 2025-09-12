@@ -132,7 +132,7 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 11,
+    "resets": 442,
     "path": "hunt/kyogre_bdsp",
     "shiny_bounding_box": [
       950,
