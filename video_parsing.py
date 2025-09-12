@@ -42,6 +42,8 @@ roaming_box = [0,0,0,0]
 is_roaming = False
 roaming_detected = False
 roaming_battle = False
+error_detected = False
+session_error_count = 0
 
 #For testing how many frames a shiny is eligible to be detected
 frame_count = 0
@@ -215,6 +217,40 @@ def darkness_check(frame, roi_rect):
     #         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
     return darkness, display
 
+def error_check(frame, roi_rect):
+    global resets, screenshot_folder, error_detected, session_error_count
+    x, y, w, h = roi_rect
+    h_frame, w_frame = frame.shape[:2]
+    # clamp ROI to frame bounds
+    #      1120,450,590,440
+    x = max(0, min(x, w_frame - 1))
+    y = max(0, min(y, h_frame - 1))
+    w = max(1, min(w, w_frame - x))
+    h = max(1, min(h, h_frame - y))
+
+    roi = frame[y:y+h, x:x+w]
+
+    # if roi != should_equal:
+    #     darkness = False
+
+    # Visualization only ROI content with circles and bounding box
+    #      1120,450,590,440
+    # draw bounding box
+    display = frame.copy()
+    cv2.rectangle(display, (x,y), (x+w, y+h), (0, 0, 255), 2)
+    if np.all(roi == 0):
+        error_detected = True
+        cv2.putText(display, f"Resets: {resets}", (5,20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+        
+        fname = os.path.join(screenshot_folder, f"error_{resets}.png")
+        cv2.imwrite(fname, frame)
+        session_error_count += 1
+    else:
+        error_detected = False
+
+    return display
+
 def poketch_check(frame, roi_rect):
 
     global roaming_detected
@@ -258,6 +294,8 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     
     global frame_count
 
+    global error_detected, session_error_count
+
     global roaming_detected, roaming_battle, screenshot_folder
 
     #openCV display related values
@@ -286,7 +324,9 @@ def run_live(settings, hunt_name, all_settings, testing=None):
     enable_shiny_detect = False
     enable_roaming_box = False
     enable_roaming_battle_box = False
+    enable_error_check = False
     entering_holding_pattern = False
+    
     global steps
     current_step = 1
 
@@ -312,7 +352,22 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                     enable_shiny_detect = True
                 elif ser_log == "Ending Shiny Check":
                     enable_shiny_detect = False
-                if ser_log == "Starting Battle":
+                elif ser_log == "Starting Rest":
+                    enable_error_check = True
+                elif ser_log == "Stopping Rest":
+                    enable_error_check = False
+                    current_step += 1
+                    if error_detected:
+                        error_detected = False
+                        async_controller_sequence(ser, 'E')
+                        if session_error_count > 10:
+                            entering_holding_pattern = True
+                    else:
+                        async_controller_sequence(ser, str(current_step))
+                elif ser_log == "Error Resolved":
+                    #step was incremented in "ending rest" condition
+                    async_controller_sequence(ser, str(current_step))
+                elif ser_log == "Starting Battle":
                     enable_roaming_battle_box = False
                 elif ser_log == "Screenshotting":
                     should_screenshot = True
@@ -351,6 +406,8 @@ def run_live(settings, hunt_name, all_settings, testing=None):
                     enable_game_load_box = False
                     current_step += 1
                     async_controller_sequence(ser, str(current_step))
+            elif enable_error_check:
+                display_frame = error_check(frame, game_load_box)
             elif enable_roaming_box:
                 display_frame = poketch_check(frame, roaming_box)
             elif enable_roaming_battle_box:
@@ -361,7 +418,7 @@ def run_live(settings, hunt_name, all_settings, testing=None):
             else:
                 display_frame = frame
 
-            cv2.putText(display_frame, f"Resets: {resets}", row_one, 
+            cv2.putText(display_frame, f"Resets: {resets}, Errors: {session_error_count}", row_one, 
                         text_font, text_font_scale, green, text_thickness, cv2.LINE_AA)
             cv2.putText(display_frame, last_seen, row_two, 
                         text_font, text_font_scale, (0, 0, 255), text_thickness, cv2.LINE_AA)
@@ -372,7 +429,7 @@ def run_live(settings, hunt_name, all_settings, testing=None):
 
         #If shiny has been found, enter holding pattern
         else:
-            cv2.putText(frame, f"RESETS: {resets}", row_one, 
+            cv2.putText(frame, f"RESETS: {resets}, Errors: {session_error_count}", row_one, 
                         text_font, text_font_scale, green, text_thickness, cv2.LINE_AA)
             cv2.putText(frame, "SHINY!!!!! Entering holding pattern.", row_two, 
                         text_font, text_font_scale, (0, 0, 255), text_thickness, cv2.LINE_AA)

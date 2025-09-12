@@ -379,7 +379,7 @@ void bdsp_premier_balls() {
 
 void bdsp_reset(char step) {
   //in battle -> close game -> start game
-  if (step == '1'){
+  if (step == '1'){//Close Game, extra rest to try to prevent errors
     Serial0.write("Resetting");
     buttonPress(NSButton_Home, PRESS_TIME);
     // delay(500);
@@ -388,7 +388,11 @@ void bdsp_reset(char step) {
     // delay(500);
     delay(625);
     buttonPress(NSButton_A, PRESS_TIME);
-    Serial0.write("Pressing A");
+    Serial0.write("Starting Rest");
+    delay(3000);//adding additional delay trying to prevent crashes
+    Serial0.write("Stopping Rest");    
+  }
+  else if (step == '2') {
     delay(750);
     buttonPress(NSButton_A, PRESS_TIME);
     delay(750);
@@ -397,7 +401,7 @@ void bdsp_reset(char step) {
     Serial0.write("Starting Darkness Check");
   }
   //start game -> palkia/dialga animation
-  else if (step == '2') {
+  else if (step == '3') {
     Serial0.write("Ending Darkness Check"); //need a write here because the ser_log needs to be updated in the video_parser.py
     delay(2500);//can't press the button immediately
     Serial0.write("Pressing A Button");
@@ -409,6 +413,11 @@ void bdsp_reset(char step) {
     Serial0.write("Starting Darkness Check");
     //wait until the center box isnt pitch black again.
   }
+  else if (step == 'E'){
+    buttonPress(NSButton_A, PRESS_TIME);
+    delay(30000);
+    Serial0.write("Error Resolved");
+  }
 }
 
 void bdsp_rasmanas_park(uint16_t battle_start_ms) {
@@ -416,15 +425,17 @@ void bdsp_rasmanas_park(uint16_t battle_start_ms) {
   delay(1000); //Wait for game to fully load
   buttonPress(NSButton_A, PRESS_TIME); //talk
   Serial0.write("Starting Battle");
-  delay(500); 
+  // delay(500); 
+  delay(650); //raised from 500 for rayquaza
   buttonPress(NSButton_A, PRESS_TIME); //remove dialogue box
 
   delay(battle_start_ms); 
 
   Serial0.write("Starting Shiny Check");
-  delay(2000);
+  delay(2000); 
   Serial0.write("Screenshotting");
-  delay(3000);
+  // delay(3000);
+  delay(4000); //rayquaza
   Serial0.write("Ending Shiny Check");
   delay(1250); 
   Serial0.write("Ending Scripted Input");
@@ -450,10 +461,17 @@ void loop() {
       bdsp_reset('2');
     }
     else if (step == '3') {
-      bdsp_rasmanas_park(6500);
+      bdsp_reset('3');
+    }
+    else if (step == '4') {
+      // bdsp_rasmanas_park(6500);
+      bdsp_rasmanas_park(6000);//rayquaza
     }
     else if (step == '9'){
 
+    }
+    else if (step == 'E') {
+      bdsp_reset('E');
     }
     else if (step == 'Z'){
       bdsp_premier_balls();

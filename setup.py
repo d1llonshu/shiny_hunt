@@ -9,7 +9,7 @@ import os
 
 CONFIG_PATH = "config.json"
 RESET_CONFIG_PATH = "game_reset_config.json"
-HUNT_NAME_MANUAL = "moltres_bdsp"
+HUNT_NAME_MANUAL = "kyogre_bdsp"
 
 def setup(hunt_name):
     needs_updating = False

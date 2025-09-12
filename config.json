@@ -77,14 +77,14 @@
       510
     ],
     "roaming": false,
-    "steps": 3
+    "steps": 4
   },
   "moltres_bdsp": {
     "audio_device_index": 2,
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 3,
+    "resets": 3892,
     "path": "hunt/moltres_bdsp",
     "shiny_bounding_box": [
       1000,
@@ -93,6 +93,54 @@
       600
     ],
     "roaming": false,
-    "steps": 3
+    "steps": 4
+  },
+  "articuno_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 44,
+    "path": "hunt/articuno_bdsp",
+    "shiny_bounding_box": [
+      1000,
+      0,
+      600,
+      600
+    ],
+    "roaming": false,
+    "steps": 4
+  },
+  "rayquaza_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 3312,
+    "path": "hunt/rayquaza_bdsp",
+    "shiny_bounding_box": [
+      1000,
+      0,
+      600,
+      600
+    ],
+    "roaming": false,
+    "steps": 4
+  },
+  "kyogre_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 11,
+    "path": "hunt/kyogre_bdsp",
+    "shiny_bounding_box": [
+      950,
+      400,
+      900,
+      500
+    ],
+    "roaming": false,
+    "steps": 4
   }
 }
