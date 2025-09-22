@@ -148,8 +148,40 @@
     "video_device_index": 0,
     "controller_com_port": "COM8",
     "controller_upload_port": "COM6",
-    "resets": 0,
+    "resets": 1365,
     "path": "hunt/groudon_bdsp",
+    "shiny_bounding_box": [
+      1000,
+      100,
+      750,
+      700
+    ],
+    "roaming": false,
+    "steps": 4
+  },
+  "lugia_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 2014,
+    "path": "hunt/lugia_bdsp",
+    "shiny_bounding_box": [
+      1000,
+      100,
+      750,
+      700
+    ],
+    "roaming": false,
+    "steps": 4
+  },
+  "mewtwo_bdsp": {
+    "audio_device_index": 2,
+    "video_device_index": 0,
+    "controller_com_port": "COM8",
+    "controller_upload_port": "COM6",
+    "resets": 1038,
+    "path": "hunt/mewtwo_bdsp",
     "shiny_bounding_box": [
       1000,
       100,

@@ -3,6 +3,8 @@ from configuration.configHelper import print_linebreak
 
 #Probably looking for USB-Enhanced-SERIAL CH343
 
+#COMPUTER USB CORD RIGHT SIDE, SWITCH USB LEFT SIDE
+
 def setup(uart_port : str = ""):
     print("Setting Up Controller Serial Communication...")
     og_uart = uart_port
